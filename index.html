@@ -241,28 +241,24 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-head .eyebrow{font-size:11px}
 .m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
 .m-list{flex:1 1 auto;overflow:auto;padding:6px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
-/* Tarjeta: cuadrícula de 8 px. Columna izquierda alinea ícono, precios y oferta; columna derecha alinea selector y subtotal. */
-.m-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"ico name step" "sep sep sep" "lp lp lt" "pu pu tot" "was was was" "of of of";column-gap:12px;row-gap:0;align-items:start;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.m-card > .m-ico{grid-area:ico;width:40px;height:40px;border-radius:10px}
-.m-card .c-head{grid-area:name;min-width:0;padding-top:1px}
-.m-card .c-name{font-weight:700;font-size:15px;line-height:20px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.m-card .c-sub{font-size:13px;line-height:18px;color:var(--muted);margin-top:2px}
-.m-card .m-step{grid-area:step}
-.m-card .c-lab{font-size:10.5px;line-height:16px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.m-card .c-sep{grid-area:sep;border-top:1px solid var(--line);margin:16px 0 12px}
-.m-card .c-lp{grid-area:lp}
-.m-card .c-lt{grid-area:lt;text-align:right}
-.m-card .c-pu{grid-area:pu;font-weight:800;font-size:19px;line-height:26px;letter-spacing:-.01em;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:0}
-.m-card .c-tot{grid-area:tot;font-weight:800;font-size:19px;line-height:26px;letter-spacing:-.01em;color:var(--good);white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
-.m-card .c-pu .cur,.m-card .c-tot .cur{font-size:11px;font-weight:600;color:var(--muted);margin-right:3px;vertical-align:.15em}
-.m-card .c-u{font-size:12px;font-weight:500;color:var(--muted);margin-left:4px;letter-spacing:0}
-.m-card .c-was{grid-area:was;display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12.5px;line-height:20px;color:var(--muted);font-variant-numeric:tabular-nums}
-.m-card .c-was .cur{font-size:10px;margin-right:2px}
-.m-card .c-of{grid-area:of;margin-top:12px;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;line-height:18px}
-.m-card .c-of b{color:var(--good);font-weight:800;letter-spacing:.06em;margin-right:8px}
-.m-card .c-of strong{font-weight:800}
-.m-card .c-of .cur{font-size:10px;opacity:.8}
-.m-card .m-chip{font-size:11px;line-height:16px;padding:2px 8px}
+.m-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"ico name step" "pu pu tot" "of of of";column-gap:12px;row-gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.m-card > .m-ico{grid-area:ico;width:44px;height:44px;align-self:start}
+.m-card .c-head{grid-area:name;min-width:0}
+.m-card .c-name{font-weight:700;font-size:16px;line-height:1.2}
+.m-card .c-sub{font-size:13.5px;color:var(--muted);margin-top:2px}
+.m-card .m-step{grid-area:step;align-self:start}
+.m-card .c-pu{grid-area:pu;display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.m-card .c-price{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
+.m-card .c-now{font-family:var(--f-body);font-weight:800;font-size:22px;letter-spacing:-.01em;white-space:nowrap}
+.m-card .c-was{font-size:12px;color:var(--muted);white-space:nowrap;margin-top:4px;display:flex;align-items:center;gap:2px}
+.m-card .c-was .m-chip{margin-left:8px;font-size:11.5px;padding:2px 8px}
+.m-card .c-was s{font-size:14px}
+.m-card .c-u{font-family:var(--f-body);font-size:12.5px;font-weight:500;color:var(--muted);margin-left:2px}
+.m-card .c-tot{grid-area:tot;font-family:var(--f-body);font-weight:800;font-size:24px;letter-spacing:-.01em;color:var(--good);white-space:nowrap;justify-self:end;align-self:end;font-variant-numeric:tabular-nums}
+.m-card .c-tot .cur,.m-card .c-now .cur,.m-card .c-was .cur{font-weight:500;color:var(--muted)}
+.m-card .c-of{grid-area:of;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:7px 12px;font-size:12.5px;font-weight:700;line-height:1.3}
+.m-card .c-of b{color:var(--good);letter-spacing:.06em;margin-right:6px}
+.m-card .m-chip{font-size:12.5px;padding:4px 10px}
 .m-card.hl{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .m-info{min-width:0;display:flex;flex-direction:column;gap:2px}
 .m-info h3{font-family:var(--f-body);font-size:15px;font-weight:700;line-height:1.25}
@@ -276,10 +272,10 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-chip.detal{background:var(--none-bg);color:var(--none)}
 .m-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .m-step{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.m-step button{width:36px;height:40px;border:0;background:transparent;color:var(--accent);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.m-step button{width:40px;height:42px;border:0;background:transparent;color:var(--accent);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .m-step button:active{background:var(--accent-soft)}
 .m-step button svg{width:17px;height:17px;stroke:var(--bad);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.m-step input{width:42px;height:40px;border:0;border-inline:1px solid var(--line);border-radius:0;background:var(--panel);text-align:center;font:700 16px var(--f-mono);color:var(--accent);padding:0}
+.m-step input{width:48px;height:42px;border:0;border-inline:1px solid var(--line);border-radius:0;background:var(--panel);text-align:center;font:700 16px var(--f-mono);color:var(--accent);padding:0}
 .m-line{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;white-space:nowrap}
 .m-empty{margin:auto;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 10px;max-width:30ch}
 .m-empty .m-ico{width:64px;height:64px;border-radius:18px}
@@ -1195,15 +1191,14 @@ function renderM(){
     $('m-list').innerHTML = c.rows.map(r=>{
       const k=Q.indexOf(r.l), p=r.p;
       const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}</div></div>${stepper(k,r.l.q)}`;
-      if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-was" style="margin-top:12px"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
+      if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-pu"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
       const disc=Math.round((1-r.pu/p.list)*100);
       const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
       const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
-      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b><strong>${fmt(nx.pr)}</strong> c/u si sumas ${extra} pieza${extra>1?'s':''} ${mMix?'en el pedido final':'de esta prenda'}</div>` : '';
+      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} ${mMix?'en el pedido final':'de esta prenda'}</div>` : '';
       return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
-        <div class="c-sep"></div><div class="c-lab c-lp">Precio unidad</div><div class="c-lab c-lt">Subtotal</div>
-        <div class="c-pu">${fmt(r.pu)}</div><div class="c-tot">${fmt(r.line)}</div>
-        <div class="c-was">${r.ti>0?`<span>Detal <s>${fmt(p.list)}</s></span><span class="m-chip">−${disc}%</span>`:'<span class="m-chip detal">Precio detal</span>'}</div>${offer}</article>`;
+        <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
+        <div class="c-tot">${fmt(r.line)}</div>${offer}</article>`;
     }).join('');
   }
   // resumen
