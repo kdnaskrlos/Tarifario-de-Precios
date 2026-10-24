@@ -1,7 +1,7 @@
 // Service worker mínimo: permite instalar la app y abrirla sin conexión.
 // Siempre intenta la red primero, así los cambios nuevos se ven de inmediato.
 // Los precios (datos.json) nunca se guardan aquí: la app los pide siempre a GitHub.
-const CACHE = "tarifario-v12";
+const CACHE = "tarifario-v13";
 const ARCHIVOS = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
