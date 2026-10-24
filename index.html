@@ -865,7 +865,6 @@ applyTheme();
    ========================================================= */
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
-const PRUEBA = !/(^|\.)github\.io$/i.test(location.hostname) && !/[?&]real/.test(location.search);
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
 const te=new TextEncoder(), td=new TextDecoder();
 let PASS=null, remoteSha=null, savedStr='', forceDirty=false, lastSync=0, lastUpdated=null, saving=false, syncErr='';
@@ -918,13 +917,12 @@ function ago(ts){ if(!ts) return ''; const s=Math.round((Date.now()-ts)/1000); i
 function updateSync(){
   const d=isDirty(), el=$('sync-st'), m=$('m-sync');
   let cls='sync desk-only', txt;
-  if(PRUEBA){ cls+=' dirty'; txt='Modo de prueba · no se guarda'; }
-  else if(saving){ cls+=' busy'; txt='Guardando…'; }
+  if(saving){ cls+=' busy'; txt='Guardando…'; }
   else if(syncErr){ cls+=' err'; txt=syncErr; }
   else if(d){ cls+=' dirty'; txt='Cambios sin guardar'; }
   else txt = lastUpdated ? 'Guardado · '+new Date(lastUpdated).toLocaleString('es-CO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Sin datos guardados';
   el.className=cls; el.textContent=txt;
-  $('b-save').disabled = PRUEBA || saving || !d;
+  $('b-save').disabled = saving || !d;
   if(m){ m.className='sync'+(syncErr?' err':''); m.textContent = syncErr || (lastSync ? 'Precios al día · '+ago(lastSync) : 'Cargando…'); }
 }
 setInterval(updateSync, 30000);
@@ -976,12 +974,6 @@ function firstTime(){
   };
 }
 async function boot(){
-  if(PRUEBA){
-    PASS='prueba'; closeModal(); applyData({S:DEF,P:[]});
-    syncErr=''; updateSync();
-    toast('Modo de prueba: importa un CSV para probar. Nada se guarda en GitHub.');
-    return;
-  }
   showLoading();
   let res, offline=false;
   try{ res=await ghGet(); }
@@ -1006,7 +998,6 @@ async function pull(force){
   }
 }
 async function saveRemote(){
-  if(PRUEBA){ toast('Modo de prueba: los cambios no se guardan en GitHub'); return; }
   if(saving || !PASS) return;
   if(!ls.get(K_TOKEN)){ openSettings('Para guardar en GitHub primero conecta tu cuenta.'); return; }
   saving=true; syncErr=''; updateSync();
@@ -1057,7 +1048,7 @@ $('b-save').onclick=saveRemote;
 $('b-gh').onclick=()=>openSettings();
 $('m-refresh').onclick=()=>{ $('m-sync').textContent='Actualizando…'; pull(); };
 document.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s' && !MOVIL){ e.preventDefault(); saveRemote(); } });
-window.addEventListener('beforeunload', e=>{ if(!PRUEBA && !MOVIL && PASS && isDirty()){ e.preventDefault(); e.returnValue=''; } });
+window.addEventListener('beforeunload', e=>{ if(!MOVIL && PASS && isDirty()){ e.preventDefault(); e.returnValue=''; } });
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && PASS && Date.now()-lastSync>45000) pull(); });
 
 if(MOVIL){
