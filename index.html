@@ -90,7 +90,9 @@ table.prices tbody tr.sel{background:var(--accent-soft)}
 .pname{font-weight:600}
 .psub{font-size:12px;color:var(--muted)}
 .tp{font-size:13px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.tm{font-size:11px;font-family:var(--f-mono);color:var(--muted)}
+.tm{font-size:10.5px;font-family:var(--f-mono);color:var(--muted);white-space:nowrap;letter-spacing:-.02em}
+.tm .tg{font-weight:600}
+.tm .tg .cur{font-size:.85em}
 .tm.low{color:var(--warn)}
 .flag{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:4px;vertical-align:middle}
 .flag.piso{background:var(--bad)} .flag.tope{background:var(--muted)}
@@ -147,12 +149,12 @@ svg text{font-family:var(--f-mono);font-size:10px;fill:var(--muted)}
 .cell-in{width:100%;border:1px solid transparent;background:transparent;border-radius:6px;padding:4px 6px;font:inherit;color:inherit;min-width:0}
 .cell-in:hover{border-color:var(--line)}
 .cell-in:focus{border-color:var(--accent);background:var(--bg);outline:none}
-.cell-in.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;width:78px;font-size:13px}
+.cell-in.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;width:72px;font-size:13px}
 table.prices td.n{white-space:nowrap;font-size:13px}
 .pname-in{font-weight:600}
 .psub-row{display:grid;grid-template-columns:1fr 1fr;gap:2px}
 .psub-row .cell-in{font-size:12px;color:var(--muted);padding-block:2px}
-table.prices th.prod{min-width:170px;text-align:left}
+table.prices th.prod{min-width:160px;text-align:left}
 table.prices th.chk,table.prices td.chk{width:36px;text-align:center;padding-inline:6px}
 table.prices td.chk input,table.prices th.chk input{width:16px;height:16px;cursor:pointer;accent-color:var(--accent)}
 table.prices tbody tr.checked td.chk{box-shadow:inset 3px 0 0 var(--accent)}
@@ -405,7 +407,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
       <div class="legend">
         <span style="background:var(--warn-bg);color:var(--warn);padding:0 6px;border-radius:4px;font-weight:600">bajo saludable</span><span style="background:var(--bad-bg);color:var(--bad);padding:0 6px;border-radius:4px;font-weight:600">bajo mínimo</span><span><span class="flag piso"></span> descuento recortado para no bajar del mínimo</span>
         <span><span class="flag tope"></span> sin espacio para descuento</span>
-        <span>Margen bajo cada precio: (precio − costo) ÷ precio.</span>
+        <span>Debajo de cada precio: ganancia por unidad en COP · margen.</span>
       </div>
     </section>
     <aside class="panel detail" id="detail" aria-label="Ficha del producto"></aside>
@@ -554,7 +556,7 @@ function renderTable(){
   $('chk-all').indeterminate = someChk && !allChk;
   $('tbody').innerHTML = rows.map(({p,i})=>{
     const s=status(p), T=tiers(p), c=unitCost(p), on=chk.has(p.id);
-    const cells = T ? T.map(t=>{ const z=zone(t.m); return `<td class="${z!=='good'?'z-'+z:''}"><div class="tp">${fmt(t.price)}${t.why?`<span class="flag ${t.why}" title="${t.why==='piso'?'Descuento recortado para no bajar del margen mínimo':'Sin espacio para descuento'}"></span>`:''}</div><div class="tm">${pct(t.m)}</div></td>`; }).join('')
+    const cells = T ? T.map(t=>{ const z=zone(t.m); return `<td class="${z!=='good'?'z-'+z:''}"><div class="tp">${fmt(t.price)}${t.why?`<span class="flag ${t.why}" title="${t.why==='piso'?'Descuento recortado para no bajar del margen mínimo':'Sin espacio para descuento'}"></span>`:''}</div><div class="tm"><span class="tg">${Math.round(t.price-t.c).toLocaleString('es-CO')}</span> · ${pct(t.m)}</div></td>`; }).join('')
       : `<td colspan="${S.tiers.length}" style="text-align:center;color:var(--muted)">Registra costo y precio para calcular tramos</td>`;
     return `<tr data-i="${i}" data-id="${p.id}" class="${i===sel?'sel':''}${on?' checked':''}">
       <td class="chk"><input type="checkbox" class="rowchk" data-id="${p.id}" aria-label="Seleccionar ${esc(p.prod)}"${on?' checked':''}></td>
