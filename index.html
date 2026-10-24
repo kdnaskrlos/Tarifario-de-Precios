@@ -1209,11 +1209,13 @@ function renderM(){
     ${disc>0?`<div class="m-row"><span>Descuento por volumen</span><b class="green">−${fmt(disc)}</b></div>`:''}
     <div class="m-total"><span>Total</span><b>${fmt(c.rev)}</b></div>
     ${mEye && c.rev ? `<div class="m-profit"><span>Tu costo</span><b>${fmt(c.cost)}</b></div><div class="m-profit"><span>Tu ganancia</span><b style="color:var(--${zone(prof/c.rev)})">${fmt(prof)}</b></div>`:''}
-    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar cotización</button>`;
+    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Compartir cotización</button>`;
   $('m-copy').onclick=()=>{
     const cc=mCalc(); if(!cc.rev) return;
     const txt=`COTIZACIÓN (${cc.total} prendas)\n`+cc.rows.filter(r=>r.T).map(r=>`${r.p.prod} ${r.p.gen} ${r.l.q} unid. / ${fmtT(r.pu)} = ${fmtT(r.line)}`).join('\n')+`\nTotal: ${fmtT(cc.rev)}`;
-    copy(txt,'Cotización copiada');
+    if(navigator.share){
+      navigator.share({title:'Cotización', text:txt}).catch(err=>{ if(err && err.name!=='AbortError') copy(txt,'No se pudo abrir compartir: cotización copiada'); });
+    } else copy(txt,'Cotización copiada');
   };
   $('m-eye').setAttribute('aria-pressed', mEye);
 }
