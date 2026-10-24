@@ -241,7 +241,24 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-head .eyebrow{font-size:11px}
 .m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
 .m-list{flex:1 1 auto;overflow:auto;padding:6px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
-.m-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:start;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.m-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"ico name step" "pu pu tot" "of of of";column-gap:12px;row-gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.m-card > .m-ico{grid-area:ico;width:44px;height:44px;align-self:start}
+.m-card .c-head{grid-area:name;min-width:0}
+.m-card .c-name{font-weight:700;font-size:16px;line-height:1.2}
+.m-card .c-sub{font-size:13.5px;color:var(--muted);margin-top:2px}
+.m-card .m-step{grid-area:step;align-self:start}
+.m-card .c-pu{grid-area:pu;display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.m-card .c-price{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
+.m-card .c-now{font-family:var(--f-body);font-weight:800;font-size:22px;letter-spacing:-.01em;white-space:nowrap}
+.m-card .c-was{font-size:12px;color:var(--muted);white-space:nowrap;margin-top:4px;display:flex;align-items:center;gap:2px}
+.m-card .c-was .m-chip{margin-left:8px;font-size:11.5px;padding:2px 8px}
+.m-card .c-was s{font-size:14px}
+.m-card .c-u{font-family:var(--f-body);font-size:12.5px;font-weight:500;color:var(--muted);margin-left:2px}
+.m-card .c-tot{grid-area:tot;font-family:var(--f-body);font-weight:800;font-size:24px;letter-spacing:-.01em;color:var(--good);white-space:nowrap;justify-self:end;align-self:end;font-variant-numeric:tabular-nums}
+.m-card .c-tot .cur,.m-card .c-now .cur,.m-card .c-was .cur{font-weight:500;color:var(--muted)}
+.m-card .c-of{grid-area:of;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:7px 12px;font-size:12.5px;font-weight:700;line-height:1.3}
+.m-card .c-of b{color:var(--good);letter-spacing:.06em;margin-right:6px}
+.m-card .m-chip{font-size:12.5px;padding:4px 10px}
 .m-card.hl{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .m-info{min-width:0;display:flex;flex-direction:column;gap:2px}
 .m-info h3{font-family:var(--f-body);font-size:15px;font-weight:700;line-height:1.25}
@@ -250,15 +267,15 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-pu small{font-family:var(--f-body);font-size:12px;font-weight:500;color:var(--muted)}
 .m-pu s{font-size:12px;color:var(--muted);font-weight:400}
 .m-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.m-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--good-bg);color:var(--good);white-space:nowrap}
+.m-chip{font-family:var(--f-body);font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--good-bg);color:var(--good);white-space:nowrap}
 .m-chip.soft{background:var(--accent-soft);color:var(--accent)}
 .m-chip.detal{background:var(--none-bg);color:var(--none)}
 .m-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .m-step{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.m-step button{width:36px;height:38px;border:0;background:transparent;color:var(--accent);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.m-step button{width:40px;height:42px;border:0;background:transparent;color:var(--accent);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .m-step button:active{background:var(--accent-soft)}
 .m-step button svg{width:17px;height:17px;stroke:var(--bad);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.m-step input{width:46px;height:38px;border:0;border-inline:1px solid var(--line);border-radius:0;background:var(--panel);text-align:center;font:700 16px var(--f-mono);color:var(--accent);padding:0}
+.m-step input{width:48px;height:42px;border:0;border-inline:1px solid var(--line);border-radius:0;background:var(--panel);text-align:center;font:700 16px var(--f-mono);color:var(--accent);padding:0}
 .m-line{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;white-space:nowrap}
 .m-empty{margin:auto;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 10px;max-width:30ch}
 .m-empty .m-ico{width:64px;height:64px;border-radius:18px}
@@ -1014,7 +1031,7 @@ function showLoading(msg){ modal(`<div class="spin" aria-hidden="true"></div><p 
 function applyData(d, keepQuote){
   const nextS=Object.assign(JSON.parse(JSON.stringify(DEF)), d.S||{});
   if(keepQuote) remap(()=>{ S=nextS; P=d.P||[]; });
-  else { S=nextS; P=d.P||[]; ensureIds(); Q=MOVIL?[]:[{i:-1,q:1}]; sel=0; }
+  else { S=nextS; P=d.P||[]; ensureIds(); Q=MOVIL?mLoadQuote():[{i:-1,q:1}]; sel=0; }
   undoStack=[]; chk.clear(); forceDirty=false;
   lastUpdated=d.actualizado||null; lastSync=Date.now(); syncErr='';
   savedStr=stateStr(); refresh();
@@ -1147,6 +1164,9 @@ function iconOf(p){
 }
 const K_MMIX='tarifario-movil-mix', K_EYE='tarifario-movil-ganancia';
 let mMix = ls.get(K_MMIX)!=='0', mEye = ls.get(K_EYE)==='1', mLast=-1;
+const K_MQ='tarifario-movil-cotizacion';
+function mSaveQuote(V){ if(!P.length) return; ls.set(K_MQ, JSON.stringify(V.map(l=>({id:P[l.i].id,q:l.q})))); }
+function mLoadQuote(){ try{ const a=JSON.parse(ls.get(K_MQ)||'[]'); return a.map(x=>({i:P.findIndex(p=>p.id===x.id),q:Math.max(1,x.q|0)})).filter(l=>l.i>=0); }catch(e){ return []; } }
 function mItems(){ return Q.filter(l=>l.i>=0 && P[l.i]); }
 function mCalc(){
   const V=mItems(), total=V.reduce((a,l)=>a+l.q,0);
@@ -1162,6 +1182,7 @@ function mCalc(){
 }
 function renderM(){
   const c=mCalc();
+  mSaveQuote(c.V);
   $('m-count').textContent = c.total ? `Pedido · ${c.V.length} producto${c.V.length===1?'':'s'}` : 'Pedido';
   $('m-clear').hidden = !c.V.length;
   if(!c.V.length){
@@ -1169,33 +1190,25 @@ function renderM(){
   } else {
     $('m-list').innerHTML = c.rows.map(r=>{
       const k=Q.indexOf(r.l), p=r.p;
-      if(!r.T) return `<article class="m-card" data-k="${k}">${iconOf(p)}<div class="m-info"><h3>${esc(p.prod)}</h3><p>${esc(p.gen)} · ${esc(p.prov)}</p><div class="m-chips"><span class="m-chip detal">Sin costo o precio registrado</span></div></div>${stepper(k,r.l.q)}</article>`;
+      const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}</div></div>${stepper(k,r.l.q)}`;
+      if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-pu"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
       const disc=Math.round((1-r.pu/p.list)*100);
       const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
-      const chips = (r.ti>0 ? `<span class="m-chip">−${disc}% por volumen</span>` : `<span class="m-chip detal">Precio detal</span>`)
-        + (nx && nx.pr<r.pu ? `<span class="m-chip soft">${fmt(nx.pr)} desde ${nx.min}${mMix?' en el pedido':' u.'}</span>` : '');
-      return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${iconOf(p)}
-        <div class="m-info"><h3>${esc(p.prod)}</h3><p>${esc(p.gen)} · ${esc(p.prov)}</p>
-          <div class="m-pu">${fmt(r.pu)}<small>/unid.</small>${r.ti>0?`<s>${fmt(p.list)}</s>`:''}</div>
-          <div class="m-chips">${chips}</div></div>
-        <div class="m-right">${stepper(k,r.l.q)}<span class="m-line">${fmt(r.line)}</span></div></article>`;
+      const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
+      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} ${mMix?'en el pedido final':'de esta prenda'}</div>` : '';
+      return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
+        <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
+        <div class="c-tot">${fmt(r.line)}</div>${offer}</article>`;
     }).join('');
   }
   // resumen
-  const ti=tierIndex(c.total);
-  let nudge='';
-  if(mMix && c.V.length && !c.missing && ti<S.tiers.length-1){
-    const nx=S.tiers[ti+1].min, extra=nx-c.total;
-    const T0=c.rows[0].T, cheaper=T0 && T0[ti+1].price<T0[ti].price;
-    if(cheaper) nudge=`<div class="m-nudge">Con <b>${extra} prenda${extra>1?'s':''} más</b> todo el pedido baja al tramo ${tierLabel(ti+1)}.</div>`;
-  }
   const disc=c.det-c.rev, prof=c.rev-c.cost;
   $('m-sum').hidden = !c.V.length;
-  $('m-sum').innerHTML = `${nudge}
+  $('m-sum').innerHTML = `
     <div class="m-row count"><span>${c.total} prenda${c.total===1?'':'s'}</span><b>${c.V.length?fmt(c.det):''}</b></div>
     ${disc>0?`<div class="m-row"><span>Descuento por volumen</span><b class="green">−${fmt(disc)}</b></div>`:''}
     <div class="m-total"><span>Total</span><b>${fmt(c.rev)}</b></div>
-    ${mEye && c.rev ? `<div class="m-profit"><span>Tu ganancia</span><b style="color:var(--${zone(prof/c.rev)})">${fmt(prof)} · ${pct(prof/c.rev)}</b></div>`:''}
+    ${mEye && c.rev ? `<div class="m-profit"><span>Tu costo</span><b>${fmt(c.cost)}</b></div><div class="m-profit"><span>Tu ganancia</span><b style="color:var(--${zone(prof/c.rev)})">${fmt(prof)}</b></div>`:''}
     <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar cotización</button>`;
   $('m-copy').onclick=()=>{
     const cc=mCalc(); if(!cc.rev) return;
@@ -1211,10 +1224,9 @@ function stepper(k,q){
 function mAdd(i){
   Q=Q.filter(l=>l.i>=0);
   let k=Q.findIndex(l=>l.i===i);
-  if(k>=0) Q[k].q+=1; else { Q.unshift({i,q:1}); k=0; }
-  mLast=k; renderM(); setTimeout(()=>{ mLast=-1; }, 50);
-  $('m-list').scrollTop=0;
-  toast(`${P[i].prod} ${P[i].gen} agregado`);
+  if(k>=0) Q[k].q+=1; else { Q.push({i,q:1}); k=Q.length-1; }
+  mLast=k; renderM(); mLast=-1;
+  const card=$('m-list').querySelector(`.m-card[data-k="${k}"]`); if(card) card.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 function mRemove(k){
   const l=Q[k], name=P[l.i]?P[l.i].prod:''; Q.splice(k,1); renderM();
