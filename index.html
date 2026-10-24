@@ -1303,8 +1303,8 @@ $('m-list').addEventListener('change', e=>{
   if(v<=0) return mRemove(k);
   Q[k].q=v; renderM();
 });
-/* al tocar la cantidad se vacía el campo (sin seleccionar texto, así Android no abre el menú de copiar) */
-$('m-list').addEventListener('focusin', e=>{ const i=e.target; if(!i.matches('input[data-k]')) return; i.placeholder=i.value; i.value=''; });
+/* al tocar la cantidad el número desaparece; si no se escribe nada, vuelve (sin seleccionar texto, así Android no abre el menú de copiar) */
+$('m-list').addEventListener('focusin', e=>{ const i=e.target; if(!i.matches('input[data-k]')) return; i.placeholder=''; i.value=''; });
 $('m-list').addEventListener('focusout', e=>{ const i=e.target; if(!i.matches('input[data-k]')) return; if(i.value===''){ const l=Q[+i.dataset.k]; if(l) i.value=l.q; } });
 $('m-list').addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches('input[data-k]')) e.target.blur(); });
 // vaciar (dos toques)
