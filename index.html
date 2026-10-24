@@ -238,7 +238,7 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-res .m-ico{width:40px;height:40px;border-radius:10px}
 .m-ico svg{width:58%;height:58%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .ic-shirt{background:var(--accent-soft);color:var(--accent)}
-.ic-hood,.ic-pants,.ic-cap{background:var(--accent-soft);color:var(--accent)}
+.ic-hood,.ic-pants,.ic-cap,.ic-baby{background:var(--accent-soft);color:var(--accent)}
 .m-head{display:flex;justify-content:space-between;align-items:center;padding:14px max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px));flex:0 0 auto}
 .m-head .eyebrow{font-size:11px}
 .m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
@@ -300,8 +300,8 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-sum{position:relative;transition:padding .28s ease}
 .m-grip{position:absolute;left:50%;top:2px;transform:translateX(-50%);width:56px;height:20px;border:0;padding:0;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
 .m-grip::before{content:"";position:absolute;inset:-10px -24px}
-.m-grip svg{width:30px;height:11px;fill:var(--line);transform:rotate(180deg);transition:transform .32s cubic-bezier(.34,1.56,.64,1),fill .2s ease}
-.m-sum.mini .m-grip svg{transform:rotate(0deg)}
+.m-grip svg{width:30px;height:11px;fill:var(--line);transform:scaleY(-1);transition:transform .34s cubic-bezier(.45,0,.2,1),fill .2s ease}
+.m-sum.mini .m-grip svg{transform:scaleY(1)}
 .m-grip:active svg{fill:var(--muted)}
 .m-more{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s ease, opacity .22s ease}
 .m-more > .m-in{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:6px}
@@ -1179,13 +1179,14 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
    ========================================================= */
 const ICONS = {
   shirt:'<svg viewBox="0 0 24 24"><path d="M8.5 3.5 4 5.5 2.5 10l3 1.2V20.5h13V11.2l3-1.2L20 5.5l-4.5-2a3.5 3.5 0 0 1-7 0z"/></svg>',
-  hood:'<svg viewBox="0 0 24 24"><path d="M9 3.5C7 4.3 6 6 6 8v.5L3 10.5l1.5 5L6 15v5.5h12V15l1.5.5 1.5-5L18 8.5V8c0-2-1-3.7-3-4.5"/><path d="M9 3.5c0 2 1.3 4 3 4s3-2 3-4"/><path d="M10 10.5v3M14 10.5v3"/></svg>',
+  hood:'<svg viewBox="0 0 24 24"><path d="M8.6 6.2C8.6 3.9 10.1 2.5 12 2.5s3.4 1.4 3.4 3.7"/><path d="M8.6 5.6 5 7.2 2.6 14.2l2.6 1 1-2.4V21.5h11.6v-8.7l1 2.4 2.6-1-2.4-7-3.6-1.6"/><path d="M9.4 6.2c0 2 1.2 3.4 2.6 3.4s2.6-1.4 2.6-3.4"/><path d="M10.6 9.4v2.8M13.4 9.4v2.8"/><path d="M8.6 21.5v-2.2l1-2.6h4.8l1 2.6v2.2"/></svg>',
+  baby:'<svg viewBox="0 0 24 24"><path d="M9 3.2c1.6 1.6 4.4 1.6 6 0l4.6 2.4 1.6 4.2-3 1.1-1.2-1.6v5.5c0 2.6-1.3 4.5-3 5.6v1.4h-4v-1.4c-1.7-1.1-3-3-3-5.6V9.3l-1.2 1.6-3-1.1 1.6-4.2z"/><path d="M10 19.9h4"/><circle cx="12" cy="8.5" r=".6"/><circle cx="12" cy="11" r=".6"/></svg>',
   pants:'<svg viewBox="0 0 24 24"><path d="M6.5 3h11l1 18h-5L12 10l-1.5 11h-5z"/><path d="M6.5 6h11"/></svg>',
   cap:'<svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0z"/><path d="M4 15h17.5a2 2 0 0 1-2 2H4z"/><circle cx="12" cy="6.5" r="1"/></svg>'
 };
 function iconOf(p){
   const n=norm(p.prod);
-  const k = /gorra|cachucha/.test(n)?'cap' : /jogger|pantal|conjunto|mono\b|short|bermuda/.test(n)?'pants' : /buzo|chaqueta|hoodie/.test(n)?'hood' : 'shirt';
+  const k = /gorra|cachucha/.test(n)?'cap' : /jogger|pantal|conjunto|mono\b|short|bermuda/.test(n)?'pants' : /buzo|chaqueta|hoodie/.test(n)?'hood' : /mameluco|body|pijama/.test(n)?'baby' : 'shirt';
   return `<div class="m-ico ic-${k}" aria-hidden="true">${ICONS[k]}</div>`;
 }
 const EYE_OPEN='<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
