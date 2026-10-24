@@ -238,7 +238,7 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-res .m-ico{width:40px;height:40px;border-radius:10px}
 .m-ico svg{width:58%;height:58%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
 .ic-shirt{background:var(--accent-soft);color:var(--accent)}
-.ic-hood,.ic-pants,.ic-cap,.ic-baby{background:var(--accent-soft);color:var(--accent)}
+.ic-hood,.ic-pants,.ic-cap,.ic-baby,.ic-long{background:var(--accent-soft);color:var(--accent)}
 .m-head{display:flex;justify-content:space-between;align-items:center;padding:14px max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px));flex:0 0 auto}
 .m-head .eyebrow{font-size:11px}
 .m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
@@ -289,9 +289,9 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-row.count span{color:var(--muted);font-weight:600}
 .m-row .green{color:var(--good)}
 .m-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:8px;margin-top:2px}
-.m-total span{font-size:14px}
-.m-total b{font-family:var(--f-display);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums}
-.m-total .cur{opacity:.7}
+.m-total > span{font-family:var(--f-display);font-weight:800;font-size:26px;color:var(--good);line-height:1.1}
+.m-total b{font-family:var(--f-display);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;color:var(--good);background:var(--good-bg);border-radius:99px;padding:4px 16px;line-height:1.2}
+.m-total .cur{opacity:1;color:var(--good);font-weight:700}
 .m-copy{margin-top:6px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:var(--panel);font:700 16px var(--f-body);padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .m-copy svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .m-copy:disabled{opacity:.45}
@@ -309,7 +309,7 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-sum:not(.mini){padding-top:26px}
 .m-sum.mini{padding-top:22px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .m-sum.mini .m-total{border-top:0;padding-top:0;margin-top:0}
-.m-sum.mini .m-total b{font-size:22px}
+.m-sum.mini .m-total b,.m-sum.mini .m-total > span{font-size:22px}
 @media (prefers-reduced-motion:reduce){.m-more,.m-sum,.m-grip svg{transition:none}}
 .m-profit{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between}
 .m-profit b{font-family:var(--f-mono)}
@@ -1179,6 +1179,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
    ========================================================= */
 const ICONS = {
   shirt:'<svg viewBox="0 0 24 24"><path d="M8.5 3.5 4 5.5 2.5 10l3 1.2V20.5h13V11.2l3-1.2L20 5.5l-4.5-2a3.5 3.5 0 0 1-7 0z"/></svg>',
+  long:'<svg viewBox="0 0 24 24"><path d="M8.5 3.5 5 5C3.9 5.5 3.4 6.4 3.3 7.6L2.4 19h2.7L6 11v9.5h12V11l.9 8h2.7l-.9-11.4c-.1-1.2-.6-2.1-1.7-2.6l-3.5-1.5a3.5 3.5 0 0 1-7 0z"/></svg>',
   hood:'<svg viewBox="0 0 24 24"><path d="M8.6 6.2C8.6 3.9 10.1 2.5 12 2.5s3.4 1.4 3.4 3.7"/><path d="M8.6 5.6 5 7.2 2.6 14.2l2.6 1 1-2.4V21.5h11.6v-8.7l1 2.4 2.6-1-2.4-7-3.6-1.6"/><path d="M9.4 6.2c0 2 1.2 3.4 2.6 3.4s2.6-1.4 2.6-3.4"/><path d="M10.6 9.4v2.8M13.4 9.4v2.8"/><path d="M8.6 21.5v-2.2l1-2.6h4.8l1 2.6v2.2"/></svg>',
   baby:'<svg viewBox="0 0 24 24"><path d="M9 3.2c1.6 1.6 4.4 1.6 6 0l4.6 2.4 1.6 4.2-3 1.1-1.2-1.6v5.5c0 2.6-1.3 4.5-3 5.6v1.4h-4v-1.4c-1.7-1.1-3-3-3-5.6V9.3l-1.2 1.6-3-1.1 1.6-4.2z"/><path d="M10 19.9h4"/><circle cx="12" cy="8.5" r=".6"/><circle cx="12" cy="11" r=".6"/></svg>',
   pants:'<svg viewBox="0 0 24 24"><path d="M6.5 3h11l1 18h-5L12 10l-1.5 11h-5z"/><path d="M6.5 6h11"/></svg>',
@@ -1186,7 +1187,7 @@ const ICONS = {
 };
 function iconOf(p){
   const n=norm(p.prod);
-  const k = /gorra|cachucha/.test(n)?'cap' : /jogger|pantal|conjunto|mono\b|short|bermuda/.test(n)?'pants' : /buzo|chaqueta|hoodie/.test(n)?'hood' : /mameluco|body|pijama/.test(n)?'baby' : 'shirt';
+  const k = /gorra|cachucha/.test(n)?'cap' : /jogger|pantal|conjunto|mono\b|short|bermuda/.test(n)?'pants' : /buzo|chaqueta|hoodie/.test(n)?'hood' : /mameluco|body|pijama/.test(n)?'baby' : /sueter|sweater|manga larga/.test(n)?'long' : 'shirt';
   return `<div class="m-ico ic-${k}" aria-hidden="true">${ICONS[k]}</div>`;
 }
 const EYE_OPEN='<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
