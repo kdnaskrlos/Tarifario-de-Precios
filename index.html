@@ -741,6 +741,15 @@ function renderDetail(){
 }
 
 /* ---------- Cotizador ---------- */
+/* Texto de cotización para compartir (negritas con *asteriscos* de WhatsApp) */
+function quoteText(items, total, sum){
+  let s = `*COTIZACIÓN* (${total} prenda${total===1?'':'s'})`;
+  items.forEach(it=>{
+    s += `\n\n${it.p.prod} ${it.p.gen}\nUnidades: ${it.q}\nPrecio unidad: ${fmtT(it.pu)}\nTotal: *${fmtT(it.pu*it.q)}*`;
+  });
+  if(items.length>1) s += `\n\n*TOTAL DEL PEDIDO: ${fmtT(sum)}*`;
+  return s;
+}
 const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const plabel = p => `${p.prod} · ${p.gen} · ${p.prov}`;
 function renderQuote(){ renderQuoteLines(); renderQuoteSum(); }
@@ -781,7 +790,7 @@ function renderQuoteSum(){
     ${nudge}
     <button class="btn" id="q-copy">Copiar cotización</button>`;
   $('q-copy').onclick=()=>{
-    const txt = `COTIZACIÓN (${total} prendas)\n` + V.map(l=>{const p=P[l.i]; const pu=priceAt(p,S.mix?total:l.q); return `${p.prod} ${p.gen} ${l.q} unid. / ${fmtT(pu)} = ${fmtT(pu*l.q)}`;}).join('\n') + `\nTotal: ${fmtT(rev)}`;
+    const txt = quoteText(V.filter(l=>tiers(P[l.i])).map(l=>({p:P[l.i], q:l.q, pu:priceAt(P[l.i],S.mix?total:l.q)})), total, rev);
     copy(txt,'Cotización copiada');
   };
 }
@@ -1213,7 +1222,7 @@ function renderM(){
     <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Compartir cotización</button>`;
   $('m-copy').onclick=()=>{
     const cc=mCalc(); if(!cc.rev) return;
-    const txt=`COTIZACIÓN (${cc.total} prendas)\n`+cc.rows.filter(r=>r.T).map(r=>`${r.p.prod} ${r.p.gen} ${r.l.q} unid. / ${fmtT(r.pu)} = ${fmtT(r.line)}`).join('\n')+`\nTotal: ${fmtT(cc.rev)}`;
+    const txt=quoteText(cc.rows.filter(r=>r.T).map(r=>({p:r.p, q:r.l.q, pu:r.pu})), cc.total, cc.rev);
     if(navigator.share){
       navigator.share({title:'Cotización', text:txt}).catch(err=>{ if(err && err.name!=='AbortError') copy(txt,'No se pudo abrir compartir: cotización copiada'); });
     } else copy(txt,'Cotización copiada');
