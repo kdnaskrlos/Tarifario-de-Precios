@@ -227,7 +227,7 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-search{position:relative}
 .m-search input{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:12px 14px 12px 42px;font-size:16px;font-family:var(--f-body)}
 .m-search > svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:19px;height:19px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
-.m-res{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);list-style:none;margin:0;padding:6px;max-height:58vh;overflow:auto;z-index:30}
+.m-res{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);list-style:none;margin:0;padding:6px;max-height:58vh;overflow:auto;z-index:30;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 .m-res li{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
 .m-res li:active,.m-res li.on{background:var(--accent-soft)}
 .m-res .rn{font-weight:600;font-size:14.5px}
@@ -1286,7 +1286,7 @@ function mSearch(){
 }
 $('m-q').addEventListener('input', mSearch);
 $('m-q').addEventListener('keydown', e=>{ if(e.key==='Enter'&&mHits[mOn]){ e.preventDefault(); const i=mHits[mOn].i; $('m-q').value=''; $('m-res').hidden=true; $('m-q').blur(); mAdd(i); } if(e.key==='Escape'){ $('m-q').value=''; $('m-res').hidden=true; } });
-$('m-res').addEventListener('pointerdown', e=>{ const li=e.target.closest('li[data-i]'); if(!li) return; e.preventDefault(); $('m-q').value=''; $('m-res').hidden=true; $('m-q').blur(); mAdd(+li.dataset.i); });
+$('m-res').addEventListener('click', e=>{ const li=e.target.closest('li[data-i]'); if(!li) return; $('m-q').value=''; $('m-res').hidden=true; $('m-q').blur(); mAdd(+li.dataset.i); });
 document.addEventListener('pointerdown', e=>{ if(!e.target.closest('.m-search')) $('m-res').hidden=true; });
 // tarjetas
 $('m-list').addEventListener('click', e=>{
