@@ -277,7 +277,7 @@ body.movil #q-copy{min-height:46px;font-size:15px}
         <div class="toolbar">
           <button class="btn primary" id="b-add">+ Agregar producto</button>
           <button class="btn" id="b-undo" disabled>Deshacer</button>
-          <button class="btn" id="b-copy">Copiar tabla (CSV)</button>
+          <button class="btn" id="b-copy">Exportar CSV</button>
           <button class="btn" id="b-import">Importar CSV</button>
           <button class="btn" id="b-reset">Descartar cambios</button>
         </div>
@@ -286,7 +286,7 @@ body.movil #q-copy{min-height:46px;font-size:15px}
         <span class="count" id="bulk-n"></span>
         <button class="btn" id="bk-dup">Duplicar</button>
         <button class="btn" id="bk-quote">Agregar al cotizador</button>
-        <button class="btn" id="bk-copy">Copiar selección</button>
+        <button class="btn" id="bk-copy">Exportar selección</button>
         <select id="bk-act" aria-label="Editar en lote">
           <option value="">Editar en lote…</option>
           <option value="prov">Cambiar proveedor</option>
@@ -767,7 +767,12 @@ $('b-copy').onclick=()=>{
     return [q(p.prov),q(p.gen),q(p.prod),p.cb,S.go,varCost(p),p.list,p.cb?((p.list-varCost(p))/p.list*100).toFixed(1):'',q(status(p).t),
       ...(T?T.flatMap(t=>[Math.round(t.price),(t.m*100).toFixed(1)]):S.tiers.flatMap(()=>['','']))].join(',');
   }));
-  copy(lines.join('\n'),'Tabla copiada: pégala en Excel o Sheets');
+  const d=new Date(), f=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const name = csvOnly ? `tarifario-seleccion-${f}.csv` : `tarifario-${f}.csv`;
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast(`Descargado: ${name}`);
 };
 let resetArm=false;
 $('b-reset').onclick=e=>{
@@ -807,7 +812,7 @@ function applyImport(text){
 }
 function openImport(){
   modal(`<h2>Importar productos</h2>
-    <p>Elige tu archivo CSV o pega la tabla copiada con “Copiar tabla (CSV)”. Reemplaza todos los productos actuales; puedes deshacerlo.</p>
+    <p>Elige un archivo CSV (por ejemplo, uno exportado con “Exportar CSV”) o pega la tabla. Reemplaza todos los productos actuales; puedes deshacerlo.</p>
     <input type="file" id="imp-file" accept=".csv,text/csv">
     <textarea id="imp-text" placeholder="…o pega aquí la tabla"></textarea>
     <div class="row"><button class="btn" id="imp-cancel">Cancelar</button><button class="btn primary" id="imp-go">Importar</button></div>`);
