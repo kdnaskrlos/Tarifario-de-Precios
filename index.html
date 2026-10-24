@@ -241,23 +241,23 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-head .eyebrow{font-size:11px}
 .m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
 .m-list{flex:1 1 auto;overflow:auto;padding:6px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
-.m-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"ico name name" "ico sub step" "pu pu tot" "of of of";column-gap:12px;row-gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-.m-card > .m-ico{grid-area:ico;width:44px;height:44px;align-self:start;margin-top:2px}
-.m-card .c-head{display:contents}
-.m-card .c-name{grid-area:name;font-weight:700;font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.m-card .c-sub{grid-area:sub;font-size:13.5px;color:var(--muted);align-self:start;min-width:0}
-.m-card .m-step{grid-area:step;align-self:center}
+.m-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"ico name step" "pu pu tot" "of of of";column-gap:12px;row-gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.m-card > .m-ico{grid-area:ico;width:44px;height:44px;align-self:start}
+.m-card .c-head{grid-area:name;min-width:0}
+.m-card .c-name{font-weight:700;font-size:16px;line-height:1.2}
+.m-card .c-sub{font-size:13.5px;color:var(--muted);margin-top:2px}
+.m-card .m-step{grid-area:step;align-self:start}
 .m-card .c-pu{grid-area:pu;display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
 .m-card .c-price{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
-.m-card .c-now{font-family:var(--f-body);font-weight:800;font-size:clamp(17px,5.4vw,22px);letter-spacing:-.01em;white-space:nowrap}
+.m-card .c-now{font-family:var(--f-body);font-weight:800;font-size:22px;letter-spacing:-.01em;white-space:nowrap}
 .m-card .c-was{font-size:12px;color:var(--muted);white-space:nowrap;margin-top:4px;display:flex;align-items:center;gap:2px}
 .m-card .c-was .m-chip{margin-left:8px;font-size:11.5px;padding:2px 8px}
 .m-card .c-was s{font-size:14px}
 .m-card .c-u{font-family:var(--f-body);font-size:12.5px;font-weight:500;color:var(--muted);margin-left:2px}
-.m-card .c-tot{grid-area:tot;font-family:var(--f-body);font-weight:800;font-size:clamp(18px,5.8vw,24px);letter-spacing:-.01em;color:var(--good);white-space:nowrap;justify-self:end;align-self:end;font-variant-numeric:tabular-nums}
+.m-card .c-tot{grid-area:tot;font-family:var(--f-body);font-weight:800;font-size:24px;letter-spacing:-.01em;color:var(--good);white-space:nowrap;justify-self:end;align-self:end;font-variant-numeric:tabular-nums}
 .m-card .c-tot .cur,.m-card .c-now .cur,.m-card .c-was .cur{font-weight:500;color:var(--muted)}
-.m-card .c-of{grid-area:of;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:6px 12px;font-size:clamp(11px,3.2vw,12.5px);font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.m-card .c-of b{color:var(--good);letter-spacing:.05em;margin-right:5px}
+.m-card .c-of{grid-area:of;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:7px 12px;font-size:12.5px;font-weight:700;line-height:1.3}
+.m-card .c-of b{color:var(--good);letter-spacing:.06em;margin-right:6px}
 .m-card .m-chip{font-size:12.5px;padding:4px 10px}
 .m-card.hl{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .m-info{min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -1195,7 +1195,7 @@ function renderM(){
       const disc=Math.round((1-r.pu/p.list)*100);
       const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
       const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
-      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} c/u con ${extra} pieza${extra>1?'s':''} más${mMix?'':' de esta prenda'}</div>` : '';
+      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} ${mMix?'en el pedido final':'de esta prenda'}</div>` : '';
       return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
         <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
         <div class="c-tot">${fmt(r.line)}</div>${offer}</article>`;
@@ -1209,13 +1209,11 @@ function renderM(){
     ${disc>0?`<div class="m-row"><span>Descuento por volumen</span><b class="green">−${fmt(disc)}</b></div>`:''}
     <div class="m-total"><span>Total</span><b>${fmt(c.rev)}</b></div>
     ${mEye && c.rev ? `<div class="m-profit"><span>Tu costo</span><b>${fmt(c.cost)}</b></div><div class="m-profit"><span>Tu ganancia</span><b style="color:var(--${zone(prof/c.rev)})">${fmt(prof)}</b></div>`:''}
-    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Compartir cotización</button>`;
+    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar cotización</button>`;
   $('m-copy').onclick=()=>{
     const cc=mCalc(); if(!cc.rev) return;
     const txt=`COTIZACIÓN (${cc.total} prendas)\n`+cc.rows.filter(r=>r.T).map(r=>`${r.p.prod} ${r.p.gen} ${r.l.q} unid. / ${fmtT(r.pu)} = ${fmtT(r.line)}`).join('\n')+`\nTotal: ${fmtT(cc.rev)}`;
-    if(navigator.share){
-      navigator.share({title:'Cotización', text:txt}).catch(err=>{ if(err && err.name!=='AbortError') copy(txt,'No se pudo abrir compartir: cotización copiada'); });
-    } else copy(txt,'Cotización copiada');
+    copy(txt,'Cotización copiada');
   };
   $('m-eye').setAttribute('aria-pressed', mEye);
 }
