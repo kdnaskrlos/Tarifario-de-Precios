@@ -247,14 +247,14 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-card .c-name{font-weight:700;font-size:16px;line-height:1.2}
 .m-card .c-sub{font-size:13.5px;color:var(--muted);margin-top:2px}
 .m-card .m-step{grid-area:step;align-self:start}
-.m-card .c-pu{grid-area:pu;display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.m-card .c-pu{grid-area:pu;display:flex;align-items:last baseline;gap:10px;min-width:0;flex-wrap:wrap;align-self:last baseline}
 .m-card .c-price{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
 .m-card .c-now{font-family:var(--f-body);font-weight:800;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
 .m-card .c-was{font-size:12px;color:var(--muted);white-space:nowrap;margin-top:4px;display:flex;align-items:center;gap:2px}
 .m-card .c-was .m-chip{margin-left:8px;font-size:11.5px;padding:2px 8px}
 .m-card .c-was s{font-size:14px}
 .m-card .c-u{font-family:var(--f-body);font-size:12.5px;font-weight:500;color:var(--muted);margin-left:2px}
-.m-card .c-tot{grid-area:tot;font-family:var(--f-body);font-weight:800;font-size:20px;letter-spacing:-.01em;color:var(--good);white-space:nowrap;justify-self:end;align-self:end;font-variant-numeric:tabular-nums}
+.m-card .c-tot{grid-area:tot;font-family:var(--f-body);font-weight:800;font-size:20px;letter-spacing:-.01em;color:var(--good);white-space:nowrap;justify-self:end;align-self:last baseline;font-variant-numeric:tabular-nums}
 .m-card .c-tot .cur,.m-card .c-now .cur,.m-card .c-was .cur{font-weight:500;color:var(--muted)}
 .m-card .c-of{grid-area:of;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:7px 12px;font-size:12.5px;font-weight:700;line-height:1.3}
 .m-card .c-of b{color:var(--good);letter-spacing:.06em;margin-right:6px}
@@ -1195,7 +1195,7 @@ function renderM(){
       const disc=Math.round((1-r.pu/p.list)*100);
       const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
       const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
-      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} ${mMix?'en el pedido final':'de esta prenda'}</div>` : '';
+      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} más</div>` : '';
       return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
         <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
         <div class="c-tot">${fmt(r.line)}</div>${offer}</article>`;
