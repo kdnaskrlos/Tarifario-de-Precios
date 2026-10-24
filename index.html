@@ -219,9 +219,11 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-bar{display:flex;align-items:center;gap:10px}
 .m-bar h1{font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--ink);flex:1;line-height:1.1}
 .m-bar small{display:block;font-family:var(--f-body);font-size:12px;font-weight:500;color:var(--muted);margin-top:3px;letter-spacing:0}
-.m-ib{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.m-ib{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;-webkit-tap-highlight-color:transparent}
+.m-ib:active{background:var(--soft)}
 .m-ib svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.m-ib[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.m-ib[aria-pressed="true"]{color:var(--accent)}
+.m-ib svg{width:22px;height:22px}
 .m-search{position:relative}
 .m-search input{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:12px 14px 12px 42px;font-size:16px;font-family:var(--f-body)}
 .m-search > svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:19px;height:19px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round}
@@ -295,6 +297,16 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-copy:disabled{opacity:.45}
 .m-nudge{border-left:3px solid var(--thread);border-radius:6px;background:var(--bg);color:var(--ink);font-size:13px;padding:8px 10px;line-height:1.4}
 .m-nudge b{color:var(--ink)}
+.m-sum{position:relative;transition:padding .28s ease}
+.m-grip{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:36px;height:5px;border-radius:99px;border:0;padding:0;background:var(--line);cursor:pointer}
+.m-grip::before{content:"";position:absolute;inset:-12px -20px}
+.m-more{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s ease, opacity .22s ease}
+.m-more > .m-in{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:6px}
+.m-sum.mini .m-more{grid-template-rows:0fr;opacity:0}
+.m-sum.mini{padding-top:16px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.m-sum.mini .m-total{border-top:0;padding-top:0;margin-top:0}
+.m-sum.mini .m-total b{font-size:22px}
+@media (prefers-reduced-motion:reduce){.m-more,.m-sum{transition:none}}
 .m-profit{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between}
 .m-profit b{font-family:var(--f-mono)}
 body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);text-align:center}
@@ -1172,6 +1184,11 @@ function iconOf(p){
   const k = /gorra|cachucha/.test(n)?'cap' : /jogger|pantal|conjunto|mono\b|short|bermuda/.test(n)?'pants' : /buzo|chaqueta|hoodie/.test(n)?'hood' : 'shirt';
   return `<div class="m-ico ic-${k}" aria-hidden="true">${ICONS[k]}</div>`;
 }
+const EYE_OPEN='<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_SHUT='<svg viewBox="0 0 24 24"><path d="M3 10c2.2 3 5.3 4.6 9 4.6s6.8-1.6 9-4.6"/><path d="M5.6 13.2 4 15.6M9.3 14.4l-.8 2.8M14.7 14.4l.8 2.8M18.4 13.2l1.6 2.4"/></svg>';
+/* resumen que se esconde al bajar y aparece al subir */
+let mSumHidden=false, mLastTop=0, mLock=0;
+function mSumShow(show){ mSumHidden=!show; $('m-sum').classList.toggle('mini', !show); mLock=Date.now()+450; }
 const K_MMIX='tarifario-movil-mix', K_EYE='tarifario-movil-ganancia';
 let mMix = ls.get(K_MMIX)!=='0', mEye = ls.get(K_EYE)==='1', mLast=-1;
 const K_MQ='tarifario-movil-cotizacion';
@@ -1214,12 +1231,16 @@ function renderM(){
   // resumen
   const disc=c.det-c.rev, prof=c.rev-c.cost;
   $('m-sum').hidden = !c.V.length;
-  $('m-sum').innerHTML = `
+  $('m-sum').innerHTML = `<button class="m-grip" type="button" aria-label="Mostrar resumen"></button>
+    <div class="m-more"><div class="m-in">
     <div class="m-row count"><span>${c.total} prenda${c.total===1?'':'s'}</span><b>${c.V.length?fmt(c.det):''}</b></div>
     ${disc>0?`<div class="m-row"><span>Descuento por volumen</span><b class="green">−${fmt(disc)}</b></div>`:''}
+    </div></div>
     <div class="m-total"><span>Total</span><b>${fmt(c.rev)}</b></div>
+    <div class="m-more"><div class="m-in">
     ${mEye && c.rev ? `<div class="m-profit"><span>Tu costo</span><b>${fmt(c.cost)}</b></div><div class="m-profit"><span>Tu ganancia</span><b style="color:var(--${zone(prof/c.rev)})">${fmt(prof)}</b></div>`:''}
-    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Compartir cotización</button>`;
+    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"/></svg>Compartir cotización</button></div></div>`;
+  $('m-sum').querySelector('.m-grip').onclick=()=>mSumShow(true);
   $('m-copy').onclick=()=>{
     const cc=mCalc(); if(!cc.rev) return;
     const txt=quoteText(cc.rows.filter(r=>r.T).map(r=>({p:r.p, q:r.l.q, pu:r.pu})), cc.total, cc.rev);
@@ -1227,7 +1248,9 @@ function renderM(){
       navigator.share({title:'Cotización', text:txt}).catch(err=>{ if(err && err.name!=='AbortError') copy(txt,'No se pudo abrir compartir: cotización copiada'); });
     } else copy(txt,'Cotización copiada');
   };
-  $('m-eye').setAttribute('aria-pressed', mEye);
+  const eb=$('m-eye'); eb.setAttribute('aria-pressed', mEye);
+  eb.innerHTML = mEye ? EYE_OPEN : EYE_SHUT;
+  eb.setAttribute('aria-label', mEye?'Ocultar costo y ganancia':'Mostrar costo y ganancia'); eb.title=eb.getAttribute('aria-label');
 }
 function stepper(k,q){
   const minus = q<=1 ? `<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>` : '−';
@@ -1279,6 +1302,14 @@ $('m-clear').onclick=e=>{
   if(!mClearArm){ mClearArm=true; e.target.textContent='¿Vaciar? Toca otra vez'; setTimeout(()=>{ mClearArm=false; e.target.textContent='Vaciar'; },3000); return; }
   mClearArm=false; e.target.textContent='Vaciar'; Q=[]; renderM(); toast('Pedido vacío');
 };
+$('m-list').addEventListener('scroll', ()=>{
+  const el=$('m-list'), top=el.scrollTop, d=top-mLastTop;
+  if(Date.now()<mLock){ mLastTop=top; return; }
+  if(Math.abs(d)<6) return;
+  if(d>0 && top>16) { if(!mSumHidden) mSumShow(false); }
+  else if(d<0) { if(mSumHidden) mSumShow(true); }
+  mLastTop=top;
+}, {passive:true});
 $('m-eye').onclick=()=>{ mEye=!mEye; ls.set(K_EYE, mEye?'1':'0'); renderM(); };
 $('m-set').onclick=()=>{
   modal(`<h2>Opciones</h2>
