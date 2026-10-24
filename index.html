@@ -22,7 +22,7 @@
 /* Layout: barra de reglas arriba, tabla de precios a la izquierda, ficha económica fija a la derecha; en móvil todo se apila. */
 :root{
   --bg:#f3f5f7; --panel:#ffffff; --ink:#18212d; --muted:#5d6878; --line:#dde2e8; --soft:#e9edf2;
-  --accent:#2c4f8c; --accent-soft:#e3eaf6; --thread:#c4622d;
+  --accent:#2c4f8c; --accent-soft:#e3eaf6; --thread:#c4622d; --thread-soft:#f8e7dd;
   --good:#1f7a4d; --good-bg:#e2f3ea; --warn:#9a6a00; --warn-bg:#fbf0d4; --bad:#b3322b; --bad-bg:#fbe4e2; --none:#6b7280; --none-bg:#eceef1;
   --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
@@ -30,11 +30,11 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#10151c; --panel:#171e27; --ink:#e6ebf1; --muted:#9aa6b5; --line:#2a3440; --soft:#1e2731;
-  --accent:#86a8e6; --accent-soft:#1f2c42; --thread:#e58a57;
+  --accent:#86a8e6; --accent-soft:#1f2c42; --thread:#e58a57; --thread-soft:#3a2519;
   --good:#5fcf95; --good-bg:#16302a; --warn:#e6bb52; --warn-bg:#352b12; --bad:#f08a82; --bad-bg:#3a1c1b; --none:#a3acb8; --none-bg:#242c36; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#10151c; --panel:#171e27; --ink:#e6ebf1; --muted:#9aa6b5; --line:#2a3440; --soft:#1e2731;
-  --accent:#86a8e6; --accent-soft:#1f2c42; --thread:#e58a57;
+  --accent:#86a8e6; --accent-soft:#1f2c42; --thread:#e58a57; --thread-soft:#3a2519;
   --good:#5fcf95; --good-bg:#16302a; --warn:#e6bb52; --warn-bg:#352b12; --bad:#f08a82; --bad-bg:#3a1c1b; --none:#a3acb8; --none-bg:#242c36; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;
@@ -209,18 +209,89 @@ td.z-warn .tm{color:var(--warn);font-weight:600} td.z-bad .tm{color:var(--bad);f
 .empty-start{padding:28px 20px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
 .empty-start p{margin:0;color:var(--muted);max-width:56ch}
 .msync{display:none}
-body.movil .tabs, body.movil #rules, body.movil #alerts, body.movil #v-tabla, body.movil #v-metodo, body.movil .desk-only{display:none!important}
-body.movil .msync{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
-body.movil header{flex-wrap:nowrap;align-items:flex-start}
-body.movil header > div:first-child{flex:1 1 auto}
-body.movil header p{min-height:0;font-size:13px}
-body.movil #v-cotizar h2{display:none}
-body.movil h1{font-size:26px}
-body.movil .quote{padding:14px}
-body.movil .qline{grid-template-columns:minmax(0,1fr) 64px 40px}
-body.movil .qline input,body.movil .qline .btn{min-height:42px;font-size:15px}
-body.movil .combo-list li{padding:10px}
-body.movil #q-copy{min-height:46px;font-size:15px}
+body.movil{padding:0;background:var(--bg)}
+body.movil .wrap{display:none!important}
+#m-app{display:none}
+body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560px;margin:0 auto;background:var(--bg)}
+.m-top{background:var(--accent);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 14px) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;border-radius:0 0 18px 18px;box-shadow:0 6px 18px rgba(20,35,70,.18);flex:0 0 auto;position:relative;z-index:5}
+:root[data-theme="dark"] .m-top{background:#1d2e4d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-top{background:#1d2e4d}}
+.m-top{align-items:stretch;justify-content:flex-start;flex-wrap:nowrap}
+.m-top > .m-bar,.m-top > .m-search{flex:0 0 auto;min-width:0}
+.m-bar{display:flex;align-items:center;gap:10px}
+.m-bar h1{font-size:22px;color:#fff;flex:1;line-height:1.1}
+.m-bar small{display:block;font-family:var(--f-body);font-size:12px;font-weight:500;opacity:.8;margin-top:3px;letter-spacing:0}
+.m-ib{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.14);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.m-ib svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.m-ib[aria-pressed="true"]{background:#fff;color:var(--accent)}
+.m-search{position:relative}
+.m-search input{width:100%;border:0;border-radius:12px;background:#fff;color:#18212d;padding:12px 14px 12px 42px;font-size:16px;font-family:var(--f-body)}
+.m-search > svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:19px;height:19px;stroke:#5d6878;fill:none;stroke-width:2;stroke-linecap:round}
+.m-res{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);list-style:none;margin:0;padding:6px;max-height:58vh;overflow:auto;z-index:30}
+.m-res li{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
+.m-res li:active,.m-res li.on{background:var(--accent-soft)}
+.m-res .rn{font-weight:600;font-size:14.5px}
+.m-res .rs{font-size:12px;color:var(--muted)}
+.m-res .rp{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);white-space:nowrap}
+.m-res li.empty{display:block;color:var(--muted);cursor:default;padding:12px}
+.m-ico{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.m-res .m-ico{width:40px;height:40px;border-radius:10px}
+.m-ico svg{width:58%;height:58%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
+.ic-shirt{background:var(--accent-soft);color:var(--accent)}
+.ic-hood{background:var(--thread-soft);color:var(--thread)}
+.ic-pants{background:var(--good-bg);color:var(--good)}
+.ic-cap{background:var(--warn-bg);color:var(--warn)}
+.m-head{display:flex;justify-content:space-between;align-items:center;padding:14px max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px));flex:0 0 auto}
+.m-head .eyebrow{font-size:11px}
+.m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
+.m-list{flex:1 1 auto;overflow:auto;padding:6px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.m-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:start;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.m-card.hl{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.m-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.m-info h3{font-family:var(--f-body);font-size:15px;font-weight:700;line-height:1.25}
+.m-info p{margin:0;font-size:12.5px;color:var(--muted)}
+.m-pu{margin-top:4px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.m-pu small{font-family:var(--f-body);font-size:12px;font-weight:500;color:var(--muted)}
+.m-pu s{font-size:12px;color:var(--muted);font-weight:400}
+.m-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.m-chip{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--accent);color:#fff;white-space:nowrap}
+:root[data-theme="dark"] .m-chip{color:#10151c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-chip{color:#10151c}}
+.m-chip.soft{background:var(--accent-soft);color:var(--accent)}
+.m-chip.detal{background:var(--soft);color:var(--muted)}
+.m-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.m-step{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.m-step button{width:36px;height:38px;border:0;background:transparent;color:var(--accent);font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.m-step button:active{background:var(--accent-soft)}
+.m-step button svg{width:17px;height:17px;stroke:var(--bad);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.m-step input{width:46px;height:38px;border:0;border-inline:1px solid var(--line);border-radius:0;background:var(--panel);text-align:center;font:700 16px var(--f-mono);color:var(--accent);padding:0}
+.m-line{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;white-space:nowrap}
+.m-empty{margin:auto;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 10px;max-width:30ch}
+.m-empty .m-ico{width:64px;height:64px;border-radius:18px}
+.m-empty h3{color:var(--ink);font-family:var(--f-body);font-size:16px}
+.m-sum{flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.08);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px}
+.m-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px}
+.m-row b{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.m-row.count span{color:var(--accent);font-weight:600}
+.m-row .green{color:var(--good)}
+.m-total{display:flex;justify-content:space-between;align-items:center;background:var(--accent);color:#fff;border-radius:14px;padding:12px 16px;margin-top:4px}
+:root[data-theme="dark"] .m-total{background:#1d2e4d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-total{background:#1d2e4d}}
+.m-total span{font-family:var(--f-display);font-weight:600;font-size:17px}
+.m-total b{font-family:var(--f-display);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums}
+.m-total .cur{opacity:.8}
+.m-copy{margin-top:6px;border:0;border-radius:14px;background:var(--thread);color:#fff;font:700 16px var(--f-body);padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.m-copy svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.m-copy:disabled{opacity:.45}
+.m-nudge{border-radius:12px;background:var(--thread-soft);color:var(--ink);font-size:13px;padding:9px 12px;line-height:1.4}
+.m-nudge b{color:var(--thread)}
+.m-profit{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between}
+.m-profit b{font-family:var(--f-mono)}
+body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);text-align:center}
+.m-sheet-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.m-sheet-row:first-of-type{border-top:0}
+.m-sheet-row span small{display:block;color:var(--muted);font-size:12px}
+.m-sheet-row input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.modal .spin{animation:none}}
 </style>
 
@@ -229,7 +300,6 @@ body.movil #q-copy{min-height:46px;font-size:15px}
     <div>
       <div class="eyebrow">Precios 2026 · COP</div>
       <h1 id="h-title">Tarifario por volumen</h1>
-      <div class="msync"><span class="sync" id="m-sync">Cargando…</span><button class="btn" id="m-refresh" type="button">Actualizar</button></div>
       <p id="h-desc">El precio detal lo pone el mercado. Los descuentos por cantidad premian al cliente que compra más, con un semáforo que te avisa cuando el margen baja de 20% y un tope que nunca deja bajar de 10%.</p>
     </div>
     <div class="hdr-actions">
@@ -337,6 +407,24 @@ body.movil #q-copy{min-height:46px;font-size:15px}
       <article><div class="eyebrow">Paso 5 · Semáforo</div><h3>Saludable, alerta y mínimo</h3><p>Sobre 20% de margen el tramo es saludable. Entre 10% y 20% se marca en ámbar: vender así tiene sentido si el volumen compensa. El cálculo nunca baja de 10%; si el descuento deseado lo cruzaría, se recorta y se marca.</p></article>
     </section>
   </div>
+</div>
+<div id="m-app" aria-label="Cotizador móvil">
+  <header class="m-top">
+    <div class="m-bar">
+      <h1>Cotizador<small><span id="m-sync">Cargando…</span></small></h1>
+      <button class="m-ib" id="m-refresh" type="button" aria-label="Actualizar precios" title="Actualizar precios"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+      <button class="m-ib" id="m-eye" type="button" aria-pressed="false" aria-label="Mostrar ganancia" title="Mostrar ganancia"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button class="m-ib" id="m-set" type="button" aria-label="Opciones" title="Opciones"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+    </div>
+    <div class="m-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input type="search" id="m-q" placeholder="Buscar prenda para agregar…" autocomplete="off" aria-label="Buscar prenda" aria-controls="m-res">
+      <ul class="m-res" id="m-res" role="listbox" hidden></ul>
+    </div>
+  </header>
+  <div class="m-head"><span class="eyebrow" id="m-count">Pedido</span><button class="m-link" id="m-clear" type="button">Vaciar</button></div>
+  <main class="m-list" id="m-list"></main>
+  <footer class="m-sum" id="m-sum"></footer>
 </div>
 <div class="toast" id="toast" hidden></div>
 <div class="modal-back" id="modal" hidden><div class="modal" id="modal-box" role="dialog" aria-modal="true"></div></div>
@@ -486,7 +574,7 @@ function remap(fn){
   fn(); ensureIds();
   const k=P.findIndex(p=>p.id===sid); sel = k<0 ? 0 : k;
   Q = qids.map(l=>({i:l.id?P.findIndex(p=>p.id===l.id):-1,q:l.q,e:!l.id})).filter(l=>l.i>=0||l.e).map(l=>({i:l.i,q:l.q}));
-  if(!Q.length && P.length) Q=[{i:-1,q:1}];
+  if(!Q.length && P.length && !document.body.classList.contains('movil')) Q=[{i:-1,q:1}];
   const ids=new Set(P.map(p=>p.id)); [...chk].forEach(id=>{ if(!ids.has(id)) chk.delete(id); });
 }
 function mutate(fn,msg){ snapshot(); remap(fn); refresh(); if(msg) toast(msg); }
@@ -840,7 +928,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
 function refresh(){
   const a=document.activeElement, aid=a&&a.id&&a!==document.body?a.id:null;
   let ss=null; try{ ss=a&&a.selectionStart; }catch(e){}
-  renderRules(); renderFilters(); renderAlerts(); renderTable(); renderDetail(); renderQuote(); renderDiag();
+  renderRules(); renderFilters(); renderAlerts(); renderTable(); renderDetail(); renderQuote(); renderDiag(); if(document.body.classList.contains('movil')) renderM();
   $('b-undo').disabled=!undoStack.length; updateSync();
   if(aid){ const el=$(aid); if(el && el!==document.activeElement){ el.focus(); try{ if(ss!=null) el.setSelectionRange(ss,ss); }catch(e){} } }
 }
@@ -923,7 +1011,7 @@ function updateSync(){
   else txt = lastUpdated ? 'Guardado · '+new Date(lastUpdated).toLocaleString('es-CO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Sin datos guardados';
   el.className=cls; el.textContent=txt;
   $('b-save').disabled = saving || !d;
-  if(m){ m.className='sync'+(syncErr?' err':''); m.textContent = syncErr || (lastSync ? 'Precios al día · '+ago(lastSync) : 'Cargando…'); }
+  if(m){ m.className=''; m.textContent = syncErr || (lastSync ? 'Precios al día · '+ago(lastSync) : 'Cargando…'); }
 }
 setInterval(updateSync, 30000);
 
@@ -934,7 +1022,7 @@ function showLoading(msg){ modal(`<div class="spin" aria-hidden="true"></div><p 
 function applyData(d, keepQuote){
   const nextS=Object.assign(JSON.parse(JSON.stringify(DEF)), d.S||{});
   if(keepQuote) remap(()=>{ S=nextS; P=d.P||[]; });
-  else { S=nextS; P=d.P||[]; ensureIds(); Q=[{i:-1,q:1}]; sel=0; }
+  else { S=nextS; P=d.P||[]; ensureIds(); Q=MOVIL?[]:[{i:-1,q:1}]; sel=0; }
   undoStack=[]; chk.clear(); forceDirty=false;
   lastUpdated=d.actualizado||null; lastSync=Date.now(); syncErr='';
   savedStr=stateStr(); refresh();
@@ -1051,10 +1139,146 @@ document.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key.toL
 window.addEventListener('beforeunload', e=>{ if(!MOVIL && PASS && isDirty()){ e.preventDefault(); e.returnValue=''; } });
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && PASS && Date.now()-lastSync>45000) pull(); });
 
+/* =========================================================
+   Cotizador móvil
+   ========================================================= */
+const ICONS = {
+  shirt:'<svg viewBox="0 0 24 24"><path d="M8.5 3.5 4 5.5 2.5 10l3 1.2V20.5h13V11.2l3-1.2L20 5.5l-4.5-2a3.5 3.5 0 0 1-7 0z"/></svg>',
+  hood:'<svg viewBox="0 0 24 24"><path d="M9 3.5C7 4.3 6 6 6 8v.5L3 10.5l1.5 5L6 15v5.5h12V15l1.5.5 1.5-5L18 8.5V8c0-2-1-3.7-3-4.5"/><path d="M9 3.5c0 2 1.3 4 3 4s3-2 3-4"/><path d="M10 10.5v3M14 10.5v3"/></svg>',
+  pants:'<svg viewBox="0 0 24 24"><path d="M6.5 3h11l1 18h-5L12 10l-1.5 11h-5z"/><path d="M6.5 6h11"/></svg>',
+  cap:'<svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0z"/><path d="M4 15h17.5a2 2 0 0 1-2 2H4z"/><circle cx="12" cy="6.5" r="1"/></svg>'
+};
+function iconOf(p){
+  const n=norm(p.prod);
+  const k = /gorra|cachucha/.test(n)?'cap' : /jogger|pantal|conjunto|mono\b|short|bermuda/.test(n)?'pants' : /buzo|chaqueta|hoodie/.test(n)?'hood' : 'shirt';
+  return `<div class="m-ico ic-${k}" aria-hidden="true">${ICONS[k]}</div>`;
+}
+const K_MMIX='tarifario-movil-mix', K_EYE='tarifario-movil-ganancia';
+let mMix = ls.get(K_MMIX)!=='0', mEye = ls.get(K_EYE)==='1', mLast=-1;
+function mItems(){ return Q.filter(l=>l.i>=0 && P[l.i]); }
+function mCalc(){
+  const V=mItems(), total=V.reduce((a,l)=>a+l.q,0);
+  let rev=0, det=0, cost=0, missing=false;
+  const rows=V.map(l=>{
+    const p=P[l.i], T=tiers(p), qq=mMix?total:l.q;
+    if(!T){ missing=true; return {l,p,T:null}; }
+    const ti=tierIndex(qq), pu=T[ti].price;
+    rev+=pu*l.q; det+=p.list*l.q; cost+=varCost(p)*l.q;
+    return {l,p,T,ti,pu,line:pu*l.q};
+  });
+  return {V,rows,total,rev,det,cost,missing};
+}
+function renderM(){
+  const c=mCalc();
+  $('m-count').textContent = c.total ? `Pedido · ${c.V.length} producto${c.V.length===1?'':'s'}` : 'Pedido';
+  $('m-clear').hidden = !c.V.length;
+  if(!c.V.length){
+    $('m-list').innerHTML = `<div class="m-empty">${iconOf({prod:'franela'})}<h3>Arma una cotización</h3><span>Busca una prenda arriba y tócala para agregarla. Luego ajusta las cantidades con − y +.</span></div>`;
+  } else {
+    $('m-list').innerHTML = c.rows.map(r=>{
+      const k=Q.indexOf(r.l), p=r.p;
+      if(!r.T) return `<article class="m-card" data-k="${k}">${iconOf(p)}<div class="m-info"><h3>${esc(p.prod)}</h3><p>${esc(p.gen)} · ${esc(p.prov)}</p><div class="m-chips"><span class="m-chip detal">Sin costo o precio registrado</span></div></div>${stepper(k,r.l.q)}</article>`;
+      const disc=Math.round((1-r.pu/p.list)*100);
+      const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
+      const chips = (r.ti>0 ? `<span class="m-chip">−${disc}% por volumen</span>` : `<span class="m-chip detal">Precio detal</span>`)
+        + (nx && nx.pr<r.pu ? `<span class="m-chip soft">${fmt(nx.pr)} desde ${nx.min}${mMix?' en el pedido':' u.'}</span>` : '');
+      return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${iconOf(p)}
+        <div class="m-info"><h3>${esc(p.prod)}</h3><p>${esc(p.gen)} · ${esc(p.prov)}</p>
+          <div class="m-pu">${fmt(r.pu)}<small>/unid.</small>${r.ti>0?`<s>${fmt(p.list)}</s>`:''}</div>
+          <div class="m-chips">${chips}</div></div>
+        <div class="m-right">${stepper(k,r.l.q)}<span class="m-line">${fmt(r.line)}</span></div></article>`;
+    }).join('');
+  }
+  // resumen
+  const ti=tierIndex(c.total);
+  let nudge='';
+  if(mMix && c.V.length && !c.missing && ti<S.tiers.length-1){
+    const nx=S.tiers[ti+1].min, extra=nx-c.total;
+    const T0=c.rows[0].T, cheaper=T0 && T0[ti+1].price<T0[ti].price;
+    if(cheaper) nudge=`<div class="m-nudge">Con <b>${extra} prenda${extra>1?'s':''} más</b> todo el pedido baja al tramo ${tierLabel(ti+1)}.</div>`;
+  }
+  const disc=c.det-c.rev, prof=c.rev-c.cost;
+  $('m-sum').hidden = !c.V.length;
+  $('m-sum').innerHTML = `${nudge}
+    <div class="m-row count"><span>${c.total} prenda${c.total===1?'':'s'}</span><b>${c.V.length?fmt(c.det):''}</b></div>
+    ${disc>0?`<div class="m-row"><span>Descuento por volumen</span><b class="green">−${fmt(disc)}</b></div>`:''}
+    <div class="m-total"><span>Total</span><b>${fmt(c.rev)}</b></div>
+    ${mEye && c.rev ? `<div class="m-profit"><span>Tu ganancia</span><b style="color:var(--${zone(prof/c.rev)})">${fmt(prof)} · ${pct(prof/c.rev)}</b></div>`:''}
+    <button class="m-copy" id="m-copy" type="button"${c.rev?'':' disabled'}><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copiar cotización</button>`;
+  $('m-copy').onclick=()=>{
+    const cc=mCalc(); if(!cc.rev) return;
+    const txt=`COTIZACIÓN (${cc.total} prendas)\n`+cc.rows.filter(r=>r.T).map(r=>`${r.p.prod} ${r.p.gen} ${r.l.q} unid. / ${fmtT(r.pu)} = ${fmtT(r.line)}`).join('\n')+`\nTotal: ${fmtT(cc.rev)}`;
+    copy(txt,'Cotización copiada');
+  };
+  $('m-eye').setAttribute('aria-pressed', mEye);
+}
+function stepper(k,q){
+  const minus = q<=1 ? `<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>` : '−';
+  return `<div class="m-step"><button type="button" data-k="${k}" data-d="-1" aria-label="${q<=1?'Quitar':'Restar uno'}">${minus}</button><input id="m-n-${k}" data-k="${k}" type="text" inputmode="numeric" pattern="[0-9]*" value="${q}" aria-label="Cantidad"><button type="button" data-k="${k}" data-d="1" aria-label="Sumar uno">+</button></div>`;
+}
+function mAdd(i){
+  Q=Q.filter(l=>l.i>=0);
+  let k=Q.findIndex(l=>l.i===i);
+  if(k>=0) Q[k].q+=1; else { Q.unshift({i,q:1}); k=0; }
+  mLast=k; renderM(); setTimeout(()=>{ mLast=-1; }, 50);
+  $('m-list').scrollTop=0;
+  toast(`${P[i].prod} ${P[i].gen} agregado`);
+}
+function mRemove(k){
+  const l=Q[k], name=P[l.i]?P[l.i].prod:''; Q.splice(k,1); renderM();
+  toast(`${name} quitado`);
+}
+// buscador
+let mOn=0, mHits=[];
+function mSearch(){
+  const v=$('m-q').value, terms=norm(v).split(/\s+/).filter(Boolean), ul=$('m-res');
+  if(!terms.length){ ul.hidden=true; return; }
+  mHits=P.map((p,i)=>({p,i})).filter(({p})=>{ const h=norm(plabel(p)); return terms.every(x=>h.includes(x)); }).slice(0,12); mOn=0;
+  ul.innerHTML = mHits.length ? mHits.map(({p,i},n)=>`<li role="option" data-i="${i}" class="${n===0?'on':''}">${iconOf(p)}<span><span class="rn">${esc(p.prod)}</span><br><span class="rs">${esc(p.gen)} · ${esc(p.prov)}</span></span><span class="rp">${p.list?fmt(p.list):'—'}</span></li>`).join('')
+    : `<li class="empty">Ninguna prenda coincide con “${esc(v)}”.</li>`;
+  ul.hidden=false;
+}
+$('m-q').addEventListener('input', mSearch);
+$('m-q').addEventListener('keydown', e=>{ if(e.key==='Enter'&&mHits[mOn]){ e.preventDefault(); const i=mHits[mOn].i; $('m-q').value=''; $('m-res').hidden=true; $('m-q').blur(); mAdd(i); } if(e.key==='Escape'){ $('m-q').value=''; $('m-res').hidden=true; } });
+$('m-res').addEventListener('pointerdown', e=>{ const li=e.target.closest('li[data-i]'); if(!li) return; e.preventDefault(); $('m-q').value=''; $('m-res').hidden=true; $('m-q').blur(); mAdd(+li.dataset.i); });
+document.addEventListener('pointerdown', e=>{ if(!e.target.closest('.m-search')) $('m-res').hidden=true; });
+// tarjetas
+$('m-list').addEventListener('click', e=>{
+  const b=e.target.closest('button[data-d]'); if(!b) return;
+  const k=+b.dataset.k, d=+b.dataset.d; if(!Q[k]) return;
+  if(d<0 && Q[k].q<=1) return mRemove(k);
+  Q[k].q=Math.max(1,Q[k].q+d); renderM();
+});
+$('m-list').addEventListener('change', e=>{
+  if(!e.target.matches('input[data-k]')) return;
+  const k=+e.target.dataset.k, v=parseInt(e.target.value.replace(/\D/g,''))||0;
+  if(v<=0) return mRemove(k);
+  Q[k].q=v; renderM();
+});
+$('m-list').addEventListener('focusin', e=>{ if(e.target.matches('input[data-k]')) e.target.select(); });
+$('m-list').addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches('input[data-k]')) e.target.blur(); });
+// vaciar (dos toques)
+let mClearArm=false;
+$('m-clear').onclick=e=>{
+  if(!mClearArm){ mClearArm=true; e.target.textContent='¿Vaciar? Toca otra vez'; setTimeout(()=>{ mClearArm=false; e.target.textContent='Vaciar'; },3000); return; }
+  mClearArm=false; e.target.textContent='Vaciar'; Q=[]; renderM(); toast('Pedido vacío');
+};
+$('m-eye').onclick=()=>{ mEye=!mEye; ls.set(K_EYE, mEye?'1':'0'); renderM(); };
+$('m-set').onclick=()=>{
+  modal(`<h2>Opciones</h2>
+    <label class="m-sheet-row"><span>Tramo por total del pedido<small>Suma todas las prendas para elegir el tramo. Si lo apagas, cada producto cuenta por separado.</small></span><input type="checkbox" id="ms-mix"${mMix?' checked':''}></label>
+    <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
+    <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
+    <div class="row"><button class="btn primary" id="ms-ok">Listo</button></div>`);
+  $('ms-mix').onchange=e=>{ mMix=e.target.checked; ls.set(K_MMIX, mMix?'1':'0'); renderM(); };
+  $('ms-dark').onchange=e=>{ theme=e.target.checked?'oscuro':'claro'; applyTheme(); };
+  $('ms-forget').onclick=()=>{ ls.del(K_PASS); toast('La clave se pedirá la próxima vez'); };
+  $('ms-ok').onclick=closeModal;
+};
+
 if(MOVIL){
   document.body.classList.add('movil');
-  $('t-cotizar').click();
-  $('h-desc').textContent='Precios por volumen sincronizados con tu tarifario. Busca la prenda, escribe la cantidad y copia la cotización.';
+  Q=[];
 }
 refresh();
 boot();
