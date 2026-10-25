@@ -769,7 +769,10 @@ function renderDetail(){
 function quoteText(items, total, sum){
   let s = `*COTIZACIÓN* (${total} prenda${total===1?'':'s'})`;
   items.forEach(it=>{
-    s += `\n\n${it.p.prod} ${it.p.gen}\nUnidades: ${it.q}\nPrecio unidad: ${fmtT(it.pu)}\nTotal: *${fmtT(it.pu*it.q)}*`;
+    const det=it.p.list||it.pu;
+    s += `\n\n\`${it.p.prod} ${it.p.gen}\`\nUnidades: ${it.q}\nPrecio unidad: ${fmtT(det)}`;
+    if(it.pu<det) s += `\nPrecio Descuento: ${fmtT(it.pu)}`;
+    s += `\nTotal: *${fmtT(it.pu*it.q)}*`;
   });
   if(items.length>1) s += `\n\n*TOTAL DEL PEDIDO: ${fmtT(sum)}*`;
   return s;
