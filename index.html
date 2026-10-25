@@ -68,7 +68,10 @@ input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .field label{font-size:12px;color:var(--muted);font-weight:600}
 .field small{font-size:11.5px;color:var(--muted)}
 .tierEdit{overflow-x:auto}
-.tierEdit table{border-collapse:collapse;width:100%;min-width:460px}
+.tier-row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.tier-row .tierEdit{flex:0 1 auto;min-width:0}
+.tier-row .go-warn{flex:1 1 260px;margin-top:28px;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.tierEdit table{border-collapse:collapse;width:auto;min-width:360px}
 .tierEdit th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;padding:4px 6px;font-weight:600}
 .tierEdit td{padding:4px 6px}
 .tierEdit input{width:84px}
@@ -369,16 +372,19 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
       <div class="field"><label for="r-health">Margen saludable (%)</label><input type="number" id="r-health" min="0" max="80" step="1"><small>Por debajo se marca en ámbar.</small></div>
       <div class="field"><label for="r-floor">Margen mínimo (%)</label><input type="number" id="r-floor" min="0" max="80" step="1"><small>El cálculo nunca baja de aquí. Bajo este valor, rojo.</small></div>
       <div class="field"><label for="r-round">Redondear a</label><select id="r-round"><option value="100">COP 100</option><option value="500">COP 500</option><option value="1000">COP 1.000</option></select><small>Precios limpios para cotizar.</small></div>
-      <div class="field" style="grid-column:1/-1"><label for="r-go">Gasto operativo por prenda (COP)</label><input type="number" id="r-go" min="0" step="100"><small>Gasto general: se suma al costo base de los productos que no tienen un gasto propio (empaque, etiqueta, comisión, arriendo y servicios).</small><div class="go-warn" id="go-warn" hidden></div></div>
+      <div class="field" style="grid-column:1/-1"><label for="r-go">Gasto operativo por prenda (COP)</label><input type="number" id="r-go" min="0" step="100"><small>Gasto general: se suma al costo base de los productos que no tienen un gasto propio (empaque, etiqueta, comisión, arriendo y servicios).</small></div>
     </div>
     <div>
-      <div class="tierEdit">
-        <table>
-          <thead><tr><th>Tramo</th><th>Desde (unid.)</th><th>Descuento deseado %</th><th>Volumen extra necesario*</th></tr></thead>
-          <tbody id="tierRows"></tbody>
-        </table>
+      <div class="tier-row">
+        <div class="tierEdit">
+          <table>
+            <thead><tr><th>Tramo</th><th>Desde (unid.)</th><th>Descuento deseado %</th></tr></thead>
+            <tbody id="tierRows"></tbody>
+          </table>
+        </div>
+        <div class="go-warn" id="go-warn" hidden></div>
       </div>
-      <div class="field" style="margin-top:6px"><small>Si el descuento deseado deja un producto bajo el margen mínimo, ese tramo se ajusta al mínimo y se marca. * Cuánto más debes vender, en unidades, para ganar lo mismo que sin descuento, con un margen de contribución típico de tu catálogo (<span id="avgM"></span>).</small></div>
+      <div class="field" style="margin-top:6px"><small>Si el descuento deseado deja un producto bajo el margen mínimo, ese tramo se ajusta al mínimo y se marca.</small></div>
     </div>
   </section>
 
@@ -538,13 +544,10 @@ function avgMargin(){
 /* ---------- Reglas ---------- */
 function renderRules(){
   $('r-obj').value=S.obj; $('r-health').value=S.health; $('r-floor').value=S.floor; $('r-round').value=S.round; $('r-go').value=S.go; renderGoWarn(); $('q-mix').checked=S.mix;
-  const am = avgMargin(); $('avgM').textContent = pct(am);
   $('tierRows').innerHTML = S.tiers.map((t,i)=>{
-    const rv = reqVol(am, t.d/100);
-    return `<tr><td class="mono">${i+1} · ${tierLabel(i)}</td>
+    return `<tr><td class="mono">${tierLabel(i)}</td>
       <td><input type="number" id="tm-${i}" data-i="${i}" data-k="min" min="1" value="${t.min}" ${i===0?'disabled':''} aria-label="Desde tramo ${i+1}"></td>
-      <td><input type="number" id="td-${i}" data-i="${i}" data-k="d" min="0" max="80" step="0.5" value="${t.d}" ${i===0?'disabled':''} aria-label="Descuento tramo ${i+1}"></td>
-      <td class="mono">${i===0?'—':(isFinite(rv)?'+'+Math.round(rv*100)+'%':'imposible')}</td></tr>`;
+      <td><input type="number" id="td-${i}" data-i="${i}" data-k="d" min="0" max="80" step="0.5" value="${t.d}" ${i===0?'disabled':''} aria-label="Descuento tramo ${i+1}"></td></tr>`;
   }).join('');
 }
 document.addEventListener('change', e=>{
@@ -793,7 +796,7 @@ function renderDetail(){
     <div><div class="eyebrow">${esc(p.prov)} · ${esc(p.gen)}</div><h2>${esc(p.prod)}</h2></div>
     <div class="edits">
       <div class="field"><label for="e-cb">Costo base</label><input type="number" id="e-cb" min="0" step="100" value="${p.cb}"></div>
-      <div class="field"><label for="e-go">Gasto operativo</label><input type="number" id="e-go" class="go-in${hasGo(p)&&+p.gop!==(S.go||0)?' own':''}" min="0" step="100" value="${hasGo(p)?p.gop:''}" placeholder="${S.go||0}"><small>${hasGo(p)&&+p.gop!==(S.go||0)?'Propio · vacío = general':'Usa el general'}</small></div>
+      <div class="field"><label for="e-go">Gasto operativo</label><input type="number" id="e-go" class="go-in${hasGo(p)&&+p.gop!==(S.go||0)?' own':''}" min="0" step="100" value="${hasGo(p)?p.gop:''}" placeholder="${S.go||0}"></div>
       <div class="field"><label for="e-list">Precio detal</label><input type="number" id="e-list" min="0" step="500" value="${p.list}"></div>
     </div>
     ${!p.cb ? `<div class="note"><strong>Falta el costo.</strong> Con costo en cero el margen aparece como 100% y el estado engaña. Escribe el costo base de este producto para calcular sus tramos.</div>` : `
