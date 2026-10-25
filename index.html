@@ -545,7 +545,7 @@ function avgMargin(){
 function renderRules(){
   $('r-obj').value=S.obj; $('r-health').value=S.health; $('r-floor').value=S.floor; $('r-round').value=S.round; $('r-go').value=S.go; renderGoWarn(); $('q-mix').checked=S.mix;
   $('tierRows').innerHTML = S.tiers.map((t,i)=>{
-    return `<tr><td class="mono">${i+1} · ${tierLabel(i)}</td>
+    return `<tr><td class="mono">${tierLabel(i)}</td>
       <td><input type="number" id="tm-${i}" data-i="${i}" data-k="min" min="1" value="${t.min}" ${i===0?'disabled':''} aria-label="Desde tramo ${i+1}"></td>
       <td><input type="number" id="td-${i}" data-i="${i}" data-k="d" min="0" max="80" step="0.5" value="${t.d}" ${i===0?'disabled':''} aria-label="Descuento tramo ${i+1}"></td></tr>`;
   }).join('');
