@@ -214,7 +214,10 @@ td.z-warn .tm{color:var(--warn);font-weight:600} td.z-bad .tm{color:var(--bad);f
 body.movil{padding:0;background:var(--bg)}
 body.movil .wrap{display:none!important}
 #m-app{display:none}
-body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560px;margin:0 auto;background:var(--bg)}
+html.movil{padding:0!important;height:100%;overflow:hidden}
+html.movil body{height:100%;overflow:hidden}
+body.movil #m-app{display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;right:0;max-width:560px;margin:0 auto;background:var(--bg)}
+body.movil .m-list{min-height:0}
 .m-top{background:var(--panel);color:var(--ink);border-bottom:1px solid var(--line);padding:calc(env(safe-area-inset-top,0px) + 14px) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;border-radius:0 0 18px 18px;box-shadow:0 2px 8px rgba(0,0,0,.05);flex:0 0 auto;position:relative;z-index:5}
 .m-top{align-items:stretch;justify-content:flex-start;flex-wrap:nowrap}
 .m-top > .m-bar,.m-top > .m-search{flex:0 0 auto;min-width:0}
@@ -1326,14 +1329,14 @@ $('m-undo-b').onclick=()=>{
     dx=Math.min(0,mx);
     card.style.transform=`translateX(${dx}px)`;
     sw.querySelector('.m-sw-bg').style.opacity=Math.min(1,-dx/60);
-    sw.classList.toggle('ready', -dx>w*0.7);
+    sw.classList.toggle('ready', -dx>w*0.85);
   }, {passive:true});
   const end=()=>{
     if(!sw) return;
     const s=sw, c=card, k=+s.dataset.k; sw=null; card=null;
     if(mode!=='x') return;
     s.classList.add('anim');
-    if(-dx>w*0.7){
+    if(-dx>w*0.85){
       c.style.transform=`translateX(${-w-20}px)`;
       s.style.height=s.offsetHeight+'px';
       requestAnimationFrame(()=>{ s.style.height='0px'; s.style.opacity='0'; s.style.marginTop='-10px'; });
@@ -1427,7 +1430,7 @@ $('m-set').onclick=()=>{
 };
 
 if(MOVIL){
-  document.body.classList.add('movil');
+  document.body.classList.add('movil'); document.documentElement.classList.add('movil');
   Q=[];
 }
 refresh();
