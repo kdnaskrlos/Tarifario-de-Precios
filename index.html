@@ -245,6 +245,12 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-head .eyebrow{font-size:11px}
 .m-link{border:0;background:none;color:var(--accent);font:600 13px var(--f-body);cursor:pointer;padding:6px 0}
 .m-list{flex:1 1 auto;overflow:auto;padding:6px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.m-sw{position:relative;border-radius:14px;overflow:hidden;flex:0 0 auto;transition:height .26s ease,margin .26s ease,opacity .26s ease}
+.m-sw-bg{position:absolute;inset:0;background:var(--bad);color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:22px;font-weight:700;font-size:14px;opacity:0;transition:opacity .15s ease}
+.m-sw-bg svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s ease}
+.m-sw.ready .m-sw-bg svg{transform:scale(1.2)}
+.m-sw > .m-card{position:relative;touch-action:pan-y;will-change:transform}
+.m-sw.anim > .m-card{transition:transform .22s ease}
 .m-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"ico name step" "pu pu tot" "of of of";column-gap:12px;row-gap:10px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .m-card > .m-ico{grid-area:ico;width:44px;height:44px;align-self:start}
 .m-card .c-head{grid-area:name;min-width:0}
@@ -312,7 +318,7 @@ body.movil #m-app{display:flex;flex-direction:column;height:100dvh;max-width:560
 .m-sum.mini{padding-top:22px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .m-sum.mini .m-total{border-top:0;padding-top:0;margin-top:0}
 .m-sum.mini .m-total b,.m-sum.mini .m-total > span{font-size:22px}
-@media (prefers-reduced-motion:reduce){.m-more,.m-sum,.m-grip svg{transition:none}}
+@media (prefers-reduced-motion:reduce){.m-more,.m-sum,.m-grip svg,.m-sw,.m-sw.anim > .m-card{transition:none}}
 .m-profit{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between}
 .m-profit b{font-family:var(--f-mono)}
 body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max-width:calc(100% - 32px);text-align:center}
@@ -763,9 +769,12 @@ function renderDetail(){
 function quoteText(items, total, sum){
   let s = `*COTIZACIÓN* (${total} prenda${total===1?'':'s'})`;
   items.forEach(it=>{
-    s += `\n\n${it.p.prod} ${it.p.gen}\nUnidades: ${it.q}\nPrecio unidad: ${fmtT(it.pu)}\nTotal: *${fmtT(it.pu*it.q)}*`;
+    const det=it.p.list, desc=it.pu<det;
+    s += `\n\n\`${it.p.prod} ${it.p.gen}\`\nUnidades: ${it.q}\nPrecio unidad: ${fmtT(det)}`
+      + (desc ? `\nPrecio Descuento: ${fmtT(it.pu)}` : '')
+      + `\nTotal: *${fmtT(it.pu*it.q)}*`;
   });
-  if(items.length>1) s += `\n\n*TOTAL DEL PEDIDO: ${fmtT(sum)}*`;
+  if(items.length>1) s += `\n\nTOTAL DEL PEDIDO: *${fmtT(sum)}*`;
   return s;
 }
 const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
@@ -1182,7 +1191,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
 const ICONS = {
   shirt:'<svg viewBox="0 0 24 24"><path d="M8.5 3.5 4 5.5 2.5 10l3 1.2V20.5h13V11.2l3-1.2L20 5.5l-4.5-2a3.5 3.5 0 0 1-7 0z"/></svg>',
   long:'<svg viewBox="0 0 24 24"><path d="M8.5 3.5 5 5C3.9 5.5 3.4 6.4 3.3 7.6L2.4 19h2.7L6 11v9.5h12V11l.9 8h2.7l-.9-11.4c-.1-1.2-.6-2.1-1.7-2.6l-3.5-1.5a3.5 3.5 0 0 1-7 0z"/></svg>',
-  hood:'<svg viewBox="0 0 24 24"><path d="M8.6 6.2C8.6 3.9 10.1 2.5 12 2.5s3.4 1.4 3.4 3.7"/><path d="M8.6 5.6 5 7.2 2.6 14.2l2.6 1 1-2.4V21.5h11.6v-8.7l1 2.4 2.6-1-2.4-7-3.6-1.6"/><path d="M9.4 6.2c0 2 1.2 3.4 2.6 3.4s2.6-1.4 2.6-3.4"/><path d="M10.6 9.4v2.8M13.4 9.4v2.8"/><path d="M8.6 21.5v-2.2l1-2.6h4.8l1 2.6v2.2"/></svg>',
+  hood:'<svg viewBox="0 0 24 24"><path d="M8.6 6.2C8.6 3.9 10.1 2.5 12 2.5s3.4 1.4 3.4 3.7"/><path d="M8.6 5.6 5.2 7C4 7.5 3.5 8.4 3.4 9.6L2.5 20h2.6L6.2 12.5v9h11.6v-9l1.1 7.5h2.6l-.9-10.4c-.1-1.2-.6-2.1-1.8-2.6L15.4 5.6"/><path d="M9.4 6.2c0 2 1.2 3.4 2.6 3.4s2.6-1.4 2.6-3.4"/><path d="M10.6 9.4v2.8M13.4 9.4v2.8"/><path d="M8.6 21.5v-2.2l1-2.6h4.8l1 2.6v2.2"/></svg>',
   baby:'<svg viewBox="0 0 24 24"><path d="M9 3.2c1.6 1.6 4.4 1.6 6 0l4.6 2.4 1.6 4.2-3 1.1-1.2-1.6v5.5c0 2.6-1.3 4.5-3 5.6v1.4h-4v-1.4c-1.7-1.1-3-3-3-5.6V9.3l-1.2 1.6-3-1.1 1.6-4.2z"/><path d="M10 19.9h4"/><circle cx="12" cy="8.5" r=".6"/><circle cx="12" cy="11" r=".6"/></svg>',
   pants:'<svg viewBox="0 0 24 24"><path d="M6.5 3h11l1 18h-5L12 10l-1.5 11h-5z"/><path d="M6.5 6h11"/></svg>',
   cap:'<svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 0 1 16 0z"/><path d="M4 15h17.5a2 2 0 0 1-2 2H4z"/><circle cx="12" cy="6.5" r="1"/></svg>'
@@ -1215,6 +1224,18 @@ function mCalc(){
   });
   return {V,rows,total,rev,det,cost,missing};
 }
+function mCardHTML(r,c){
+      const k=Q.indexOf(r.l), p=r.p;
+  const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}</div></div>${stepper(k,r.l.q)}`;
+  if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-pu"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
+  const disc=Math.round((1-r.pu/p.list)*100);
+  const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
+  const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
+  const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} más</div>` : '';
+  return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
+    <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
+    <div class="c-tot">${fmt(r.line)}</div>${offer}</article>`;
+}
 function renderM(){
   const c=mCalc();
   mSaveQuote(c.V);
@@ -1224,16 +1245,8 @@ function renderM(){
     $('m-list').innerHTML = `<div class="m-empty">${iconOf({prod:'franela'})}<h3>Arma una cotización</h3><span>Busca una prenda arriba y tócala para agregarla. Luego ajusta las cantidades con − y +.</span></div>`;
   } else {
     $('m-list').innerHTML = c.rows.map(r=>{
-      const k=Q.indexOf(r.l), p=r.p;
-      const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}</div></div>${stepper(k,r.l.q)}`;
-      if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-pu"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
-      const disc=Math.round((1-r.pu/p.list)*100);
-      const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
-      const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
-      const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} más</div>` : '';
-      return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
-        <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
-        <div class="c-tot">${fmt(r.line)}</div>${offer}</article>`;
+      const k=Q.indexOf(r.l);
+      return `<div class="m-sw" data-k="${k}"><div class="m-sw-bg" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg><span>Quitar</span></div>${mCardHTML(r,c)}</div>`;
     }).join('');
   }
   // resumen
@@ -1275,6 +1288,73 @@ function mAdd(i){
 function mRemove(k){
   const l=Q[k], name=P[l.i]?P[l.i].prod:''; Q.splice(k,1); renderM();
   toast(`${name} quitado`);
+}
+/* deslizar a la izquierda para quitar una tarjeta */
+(function(){
+  let sw=null, card=null, x0=0, y0=0, dx=0, mode=null, w=0;
+  const list=$('m-list');
+  list.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1) return;
+    const s=e.target.closest('.m-sw'); if(!s || e.target.closest('input,button')) return;
+    sw=s; card=s.querySelector('.m-card'); w=s.offsetWidth;
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; dx=0; mode=null;
+    sw.classList.remove('anim');
+  }, {passive:true});
+  list.addEventListener('touchmove', e=>{
+    if(!sw) return;
+    const mx=e.touches[0].clientX-x0, my=e.touches[0].clientY-y0;
+    if(!mode){ if(Math.abs(mx)<8 && Math.abs(my)<8) return; mode = Math.abs(mx)>Math.abs(my) && mx<0 ? 'x' : 'y'; }
+    if(mode!=='x') return;
+    dx=Math.min(0,mx);
+    card.style.transform=`translateX(${dx}px)`;
+    sw.querySelector('.m-sw-bg').style.opacity=Math.min(1,-dx/60);
+    sw.classList.toggle('ready', -dx>w*0.35);
+  }, {passive:true});
+  const end=()=>{
+    if(!sw) return;
+    const s=sw, c=card, k=+s.dataset.k; sw=null; card=null;
+    if(mode!=='x') return;
+    s.classList.add('anim');
+    if(-dx>w*0.35){
+      c.style.transform=`translateX(${-w-20}px)`;
+      s.style.height=s.offsetHeight+'px';
+      requestAnimationFrame(()=>{ s.style.height='0px'; s.style.opacity='0'; s.style.marginTop='-10px'; });
+      setTimeout(()=>mRemove(k), 260);
+    } else {
+      c.style.transform=''; s.querySelector('.m-sw-bg').style.opacity=0; s.classList.remove('ready');
+    }
+  };
+  list.addEventListener('touchend', end);
+  list.addEventListener('touchcancel', end);
+})();
+
+/* botón atrás del teléfono mientras se escribe la cantidad: suelta el campo en vez de cerrar la app */
+let qtyGuard=false;
+$('m-list').addEventListener('focusin', e=>{
+  if(!e.target.matches('input[data-k]') || qtyGuard) return;
+  try{ history.pushState({cantidad:1}, ''); qtyGuard=true; }catch(err){}
+});
+window.addEventListener('popstate', ()=>{
+  if(!qtyGuard) return;
+  qtyGuard=false;
+  const a=document.activeElement;
+  if(a && a.matches && a.matches('#m-list input[data-k]')){ a.value=''; a.blur(); }
+});
+$('m-list').addEventListener('focusout', e=>{
+  if(!e.target.matches('input[data-k]')) return;
+  setTimeout(()=>{
+    const a=document.activeElement;
+    if(qtyGuard && !(a && a.matches && a.matches('#m-list input[data-k]'))){ qtyGuard=false; try{ history.back(); }catch(err){} }
+  }, 0);
+});
+/* si el teclado se cierra con la flecha de atrás, también se suelta el campo */
+if(window.visualViewport){
+  let vh=visualViewport.height;
+  visualViewport.addEventListener('resize', ()=>{
+    const h=visualViewport.height, a=document.activeElement;
+    if(h>vh+120 && a && a.matches && a.matches('#m-list input[data-k]')) a.blur();
+    vh=h;
+  });
 }
 // buscador
 let mOn=0, mHits=[];
