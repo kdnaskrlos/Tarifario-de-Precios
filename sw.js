@@ -1,7 +1,7 @@
 // Service worker mínimo: permite instalar la app y abrirla sin conexión.
 // Siempre intenta la red primero, así los cambios nuevos se ven de inmediato.
 // Los precios (datos.json) nunca se guardan aquí: la app los pide siempre a GitHub.
-const CACHE = "tarifario-v34";
+const CACHE = "tarifario-v37";
 const ARCHIVOS = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -23,7 +23,7 @@ self.addEventListener("fetch", (e) => {
   if (url.origin !== self.location.origin) return;        // GitHub API, fuentes: sin tocar
   if (url.pathname.endsWith("/datos.json")) return;       // los precios van directo a la red
   e.respondWith(
-    fetch(pedido)
+    fetch(pedido, { cache: "no-cache" })
       .then((respuesta) => {
         if (respuesta.ok) {
           const copia = respuesta.clone();

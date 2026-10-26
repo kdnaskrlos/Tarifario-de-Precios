@@ -717,7 +717,7 @@ function updateTpBtn(){
 }
 $('tp-reset').addEventListener('click', ()=>{
   const b=$('tp-reset'), list=tpTargets(); if(!list.length) return;
-  if(!tpArm){ tpArm=true; b.textContent=`¿Restablecer ${list.length>1?list.length+' productos':'este producto'}? Toca otra vez`; setTimeout(()=>{ tpArm=false; updateTpBtn(); },3500); return; }
+  if(!tpArm){ tpArm=true; b.textContent=`¿Restablecer${list.length>1?' '+list.length:''}? Toca otra vez`; setTimeout(()=>{ tpArm=false; updateTpBtn(); },3500); return; }
   tpArm=false; snapshot(); list.forEach(p=>{ delete p.mp; }); if($('f-state').value==='tp' && !mpOwn().length) $('f-state').value=''; refresh();
   toast(`Precios del sistema restablecidos en ${list.length} producto${list.length>1?'s':''}`);
 });
@@ -1148,6 +1148,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
+const APP_VERSION='v37';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1331,10 +1332,25 @@ function openSettings(msg){
 }
 $('b-save').onclick=saveRemote;
 $('b-gh').onclick=()=>openSettings();
-$('m-refresh').onclick=()=>{ $('m-sync').textContent='Actualizando…'; pull(); };
+/* si se subió una versión nueva de la app, recargarla para que use el código nuevo */
+let lastVerCheck=0;
+async function checkAppVersion(force){
+  if(location.protocol!=='https:' || (!force && Date.now()-lastVerCheck<60000)) return false;
+  lastVerCheck=Date.now();
+  try{
+    const r=await fetch('index.html?v='+Date.now(),{cache:'no-store'}); if(!r.ok) return false;
+    const m=(await r.text()).match(/APP_VERSION='([^']+)'/);
+    if(m && m[1]!==APP_VERSION){
+      if(!MOVIL && PASS && isDirty()){ toast('Hay una versión nueva de la app. Guarda tus cambios y recarga la página.'); return false; }
+      location.reload(); return true;
+    }
+  }catch(e){}
+  return false;
+}
+$('m-refresh').onclick=async ()=>{ $('m-sync').textContent='Actualizando…'; if(await checkAppVersion(true)) return; pull(); };
 document.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s' && !MOVIL){ e.preventDefault(); saveRemote(); } });
 window.addEventListener('beforeunload', e=>{ if(!MOVIL && PASS && isDirty()){ e.preventDefault(); e.returnValue=''; } });
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && PASS && Date.now()-lastSync>45000) pull(); });
+document.addEventListener('visibilitychange', async ()=>{ if(document.visibilityState!=='visible') return; if(await checkAppVersion()) return; if(PASS && Date.now()-lastSync>45000) pull(); });
 
 /* =========================================================
    Cotizador móvil
@@ -1390,7 +1406,7 @@ function mCardHTML(r,c){
 function renderM(){
   const c=mCalc();
   mSaveQuote(c.V);
-  $('m-count').textContent = c.total ? `Pedido · ${c.V.length} producto${c.V.length===1?'':'s'}` : 'Pedido';
+  $('m-count').textContent = c.total ? `Pedido · ${c.total} prenda${c.total===1?'':'s'}` : 'Pedido';
   $('m-clear').hidden = !c.V.length;
   if(!c.V.length){
     $('m-list').innerHTML = `<div class="m-empty">${iconOf({prod:'franela'})}<h3>Arma una cotización</h3><span>Busca una prenda arriba y tócala para agregarla. Luego ajusta las cantidades con − y +.</span></div>`;
@@ -1577,6 +1593,7 @@ if(MOVIL){
 }
 refresh();
 boot();
+setTimeout(()=>checkAppVersion(true), 4000);
 if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 
