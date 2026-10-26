@@ -86,6 +86,8 @@ input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .ur-btn{display:inline-flex;align-items:center;gap:6px}
 .ur-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ur-btn.icon-only{padding:6px 8px}
+.ms-sep{display:block;margin-top:6px}
+.ms-sep .sep-chip{margin:0 4px 0 0}
 .sep-chip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--teal-bg);color:var(--teal);white-space:nowrap;margin-top:4px;font-family:var(--f-body);letter-spacing:0;text-transform:none}
 #bk-sep.on{background:var(--teal-bg);color:var(--teal);border-color:var(--teal)}
 .tp-btn{color:var(--accent);border-color:var(--accent)}
@@ -487,7 +489,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
   <section id="v-cotizar" class="panel quote" hidden aria-label="Cotizador">
     <div style="display:flex;flex-direction:column;gap:12px">
       <h2>Cotizar un pedido</h2>
-      <label class="toggle" style="margin:0"><input type="checkbox" id="q-mix"><span>El tramo se calcula con el <strong>total de prendas del pedido</strong> (mezclando productos). Si lo desmarcas, cada producto cuenta por separado.</span></label>
+      <label class="toggle" style="margin:0"><input type="checkbox" id="q-mix"><span><strong>Sumar prendas para el tramo.</strong> Las prendas de distintos productos se suman para llegar a un mejor tramo; los productos marcados <span class="sep-chip" style="margin:0">Por separado</span> siempre usan solo su propia cantidad. Si lo desmarcas, cada producto usa solo su cantidad.</span></label>
       <div class="qlines" id="qlines"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="q-add">Agregar producto</button><button class="btn" id="q-reset">Resetear cotizador</button></div>
     </div>
@@ -1193,7 +1195,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v42';
+const APP_VERSION='v43';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1622,11 +1624,18 @@ $('m-clear').onclick=e=>{
 $('m-eye').onclick=()=>{ mEye=!mEye; ls.set(K_EYE, mEye?'1':'0'); renderM(); };
 $('m-set').onclick=()=>{
   modal(`<h2>Opciones</h2>
-    <label class="m-sheet-row"><span>Tramo por total del pedido<small>Suma todas las prendas para elegir el tramo. Si lo apagas, cada producto cuenta por separado.</small></span><input type="checkbox" id="ms-mix"${mMix?' checked':''}></label>
+    <label class="m-sheet-row"><span>Sumar prendas para el tramo<small id="ms-mix-d"></small></span><input type="checkbox" id="ms-mix"${mMix?' checked':''}></label>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
     <div class="row"><button class="btn primary" id="ms-ok">Listo</button></div>`);
-  $('ms-mix').onchange=e=>{ mMix=e.target.checked; ls.set(K_MMIX, mMix?'1':'0'); renderM(); };
+  const mixDesc=()=>{
+    const n=P.filter(isSep).length;
+    $('ms-mix-d').innerHTML = mMix
+      ? 'Las prendas de distintos productos se suman para llegar a un mejor tramo.' + (n ? `<span class="ms-sep"><span class="sep-chip">${n} producto${n>1?'s':''} por separado</span> siempre ${n>1?'usan':'usa'} solo su propia cantidad.</span>` : '')
+      : 'Cada producto usa solo su propia cantidad para elegir el tramo.';
+  };
+  mixDesc();
+  $('ms-mix').onchange=e=>{ mMix=e.target.checked; ls.set(K_MMIX, mMix?'1':'0'); mixDesc(); renderM(); };
   $('ms-dark').onchange=e=>{ theme=e.target.checked?'oscuro':'claro'; applyTheme(); };
   $('ms-forget').onclick=()=>{ ls.del(K_PASS); toast('La clave se pedirá la próxima vez'); };
   $('ms-ok').onclick=closeModal;
