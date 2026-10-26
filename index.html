@@ -717,7 +717,7 @@ function updateTpBtn(){
 }
 $('tp-reset').addEventListener('click', ()=>{
   const b=$('tp-reset'), list=tpTargets(); if(!list.length) return;
-  if(!tpArm){ tpArm=true; b.textContent=`¿Restablecer ${list.length>1?list.length+' productos':'este producto'}? Toca otra vez`; setTimeout(()=>{ tpArm=false; updateTpBtn(); },3500); return; }
+  if(!tpArm){ tpArm=true; b.textContent=`¿Restablecer${list.length>1?' '+list.length:''}? Toca otra vez`; setTimeout(()=>{ tpArm=false; updateTpBtn(); },3500); return; }
   tpArm=false; snapshot(); list.forEach(p=>{ delete p.mp; }); if($('f-state').value==='tp' && !mpOwn().length) $('f-state').value=''; refresh();
   toast(`Precios del sistema restablecidos en ${list.length} producto${list.length>1?'s':''}`);
 });
