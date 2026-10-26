@@ -1253,7 +1253,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v49';
+const APP_VERSION='v50';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1724,14 +1724,27 @@ const aiNice=m=>String(m||'').replace(/^models\//,'');
 function aiErrMsg(e){
   const s=e&&e.status;
   if(s===429) return 'Llegaste al límite gratuito de Gemini por ahora. Espera un minuto e inténtalo de nuevo.';
-  if(s===400||s===401||s===403) return 'Gemini rechazó la llave. Revísala en Opciones.';
+  if((s===400||s===401||s===403) && /api key|API_KEY|permission|unauthenticated/i.test((e&&e.body)||'')) return 'Gemini rechazó la llave. Revísala en Opciones.';
   if(e&&e.message==='sin-modelo') return 'Tu llave no tiene un modelo Flash disponible.';
-  return 'No se pudo conectar con Gemini. Revisa tu conexión.';
+  if(e&&e.stage==='datos') return 'Error al preparar los datos del tarifario: '+(e.detail||'');
+  let det='';
+  if(s){ let msg=''; try{ msg=JSON.parse(e.body||'{}').error.message||''; }catch(x){ msg=String(e.body||'').slice(0,160); } det=`Gemini respondió ${s}${msg?': '+msg:''}`; }
+  else det=(e&&e.name==='AbortError') ? 'Gemini tardó demasiado en responder.' : `Error de red (${(e&&(e.name+': '+e.message))||'desconocido'}).`;
+  return 'No se pudo obtener respuesta. '+det;
 }
 async function aiFetch(url,opt){
-  const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({'x-goog-api-key':aiKey(),'Content-Type':'application/json'},(opt||{}).headers||{})}));
-  if(!r.ok){ const e=new Error('http'); e.status=r.status; try{ e.body=await r.text(); }catch(x){} throw e; }
-  return r.json();
+  const once=async (useHeader)=>{
+    const ctl=new AbortController(), tm=setTimeout(()=>ctl.abort(), 60000);
+    const u = useHeader ? url : url+(url.includes('?')?'&':'?')+'key='+encodeURIComponent(aiKey());
+    const h = useHeader ? {'x-goog-api-key':aiKey(),'Content-Type':'application/json'} : {'Content-Type':'application/json'};
+    try{
+      const r=await fetch(u,Object.assign({},opt,{headers:h,signal:ctl.signal}));
+      if(!r.ok){ const e=new Error('http'); e.status=r.status; try{ e.body=await r.text(); }catch(x){} throw e; }
+      return await r.json();
+    } finally { clearTimeout(tm); }
+  };
+  try{ return await once(true); }
+  catch(e){ if(e && !e.status && e.name!=='AbortError') return await once(false); throw e; }
 }
 /* elige el mejor modelo "Flash" disponible para la llave (los Flash tienen plan gratuito) */
 async function aiPickModel(force){
@@ -1815,8 +1828,9 @@ async function aiAsk(q){
   try{
     const model=await aiPickModel();
     $('mc-model').textContent='Gemini · '+aiNice(model);
+    let ctxTxt; try{ ctxTxt=aiContext(); }catch(err){ const e=new Error('datos'); e.stage='datos'; e.detail=err&&err.message; throw e; }
     const turns=aiHist.filter(m=>!m.err).slice(-12);
-    const contents=turns.map((m,i)=>({role:m.role==='user'?'user':'model', parts:[{text: (i===turns.length-1 && m.role==='user') ? `DATOS ACTUALES DEL TARIFARIO:\n${aiContext()}\n\nPREGUNTA: ${m.text}` : m.text}]}));
+    const contents=turns.map((m,i)=>({role:m.role==='user'?'user':'model', parts:[{text: (i===turns.length-1 && m.role==='user') ? `DATOS ACTUALES DEL TARIFARIO:\n${ctxTxt}\n\nPREGUNTA: ${m.text}` : m.text}]}));
     const j=await aiFetch(AI_BASE+model+':generateContent',{method:'POST',body:JSON.stringify({systemInstruction:{parts:[{text:AI_SYS}]},contents,generationConfig:{temperature:0.2,maxOutputTokens:1200}})});
     const txt=((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
     aiHist.push({role:'model',text: txt || 'No obtuve respuesta. Intenta reformular la pregunta.'});
