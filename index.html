@@ -2,7 +2,7 @@
 <html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#2c4f8c">
 <meta name="robots" content="noindex">
 <link rel="manifest" href="manifest.webmanifest">
@@ -387,6 +387,39 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
 .m-undo.out{transform:translate(-50%,16px);opacity:0}
 .m-undo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .m-undo button{border:0;background:transparent;color:var(--accent-soft);font:700 14px var(--f-body);padding:6px 8px;border-radius:6px;cursor:pointer;flex:0 0 auto;text-transform:uppercase;letter-spacing:.04em}
+.m-ai-btn{color:var(--accent)}
+.m-chat{position:fixed;inset:0;z-index:42;background:var(--bg);display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+.mc-top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 10px max(8px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.mc-title{flex:1;min-width:0;display:flex;flex-direction:column}
+.mc-title strong{font-family:var(--f-display);font-size:18px}
+.mc-title small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-list{flex:1 1 auto;min-height:0;overflow:auto;padding:14px max(14px,env(safe-area-inset-right,0px)) 14px max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.mc-msg{max-width:88%;border-radius:14px;padding:9px 12px;font-size:14px;line-height:1.45}
+.mc-msg p{margin:0}
+.mc-msg p + p,.mc-msg p + ul,.mc-msg ul + p{margin-top:6px}
+.mc-msg ul{margin:4px 0 0;padding-left:18px}
+.mc-msg code{font-family:var(--f-mono);font-size:12.5px}
+.mc-msg.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+:root[data-theme="dark"] .mc-msg.me{color:#10151c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mc-msg.me{color:#10151c}}
+.mc-msg.ai{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:4px}
+.mc-msg.err{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+.mc-msg.typing{display:flex;gap:4px;padding:12px 14px}
+.mc-msg.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:mcdot 1s infinite ease-in-out}
+.mc-msg.typing span:nth-child(2){animation-delay:.15s}.mc-msg.typing span:nth-child(3){animation-delay:.3s}
+@keyframes mcdot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.mc-empty{margin:auto 0;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px}
+.mc-empty h3{color:var(--ink);font-family:var(--f-body);font-size:16px}
+.mc-empty p{margin:0;font-size:13px;max-width:30ch}
+.mc-spark{width:52px;height:52px;border-radius:16px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.mc-spark svg{width:28px;height:28px;fill:currentColor}
+.mc-sugs{display:flex;flex-direction:column;gap:8px;width:100%;margin-top:8px}
+.mc-sug{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;padding:10px 12px;font:500 13.5px var(--f-body);text-align:left;cursor:pointer}
+.mc-form{display:flex;gap:8px;align-items:flex-end;padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:var(--panel);border-top:1px solid var(--line)}
+.mc-form textarea{flex:1;min-width:0;resize:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:20px;padding:10px 14px;font:15px/1.35 var(--f-body);max-height:120px}
+.mc-send{width:42px;height:42px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+.mc-send svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){.mc-msg.typing span{animation:none}}
 .m-sheet-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
 .m-sheet-row:first-of-type{border-top:0}
 .m-sheet-row span small{display:block;color:var(--muted);font-size:12px}
@@ -524,6 +557,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
   <header class="m-top">
     <div class="m-bar">
       <h1>Cotizador<small><span id="m-sync">Cargando…</span></small></h1>
+      <button class="m-ib m-ai-btn" id="m-ai" type="button" aria-label="Asistente" title="Asistente"><svg viewBox="0 0 24 24"><path d="M12 3.5l1.7 4.3 4.3 1.7-4.3 1.7L12 15.5l-1.7-4.3L6 9.5l4.3-1.7z"/><path d="M18.5 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></button>
       <button class="m-ib" id="m-refresh" type="button" aria-label="Actualizar precios" title="Actualizar precios"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="m-ib" id="m-eye" type="button" aria-pressed="false" aria-label="Mostrar ganancia" title="Mostrar ganancia"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="m-ib" id="m-set" type="button" aria-label="Opciones" title="Opciones"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -537,6 +571,18 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
   <div class="m-head"><span class="eyebrow" id="m-count">Pedido</span><button class="m-link" id="m-clear" type="button">Vaciar</button></div>
   <main class="m-list" id="m-list"></main>
   <footer class="m-sum mini" id="m-sum"></footer>
+  <section class="m-chat" id="m-chat" hidden aria-label="Asistente">
+    <header class="mc-top">
+      <button class="m-ib" id="mc-close" type="button" aria-label="Volver al cotizador"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="mc-title"><strong>Asistente</strong><small id="mc-model">Gemini</small></div>
+      <button class="m-link" id="mc-clear" type="button">Nueva conversación</button>
+    </header>
+    <div class="mc-list" id="mc-list"></div>
+    <form class="mc-form" id="mc-form">
+      <textarea id="mc-in" rows="1" placeholder="Pregunta sobre tus precios…" aria-label="Pregunta"></textarea>
+      <button class="mc-send" id="mc-send" type="submit" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+    </form>
+  </section>
   <div class="m-undo" id="m-undo" role="status" aria-live="polite" hidden><span id="m-undo-t"></span><button type="button" id="m-undo-b">Deshacer</button></div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -1207,7 +1253,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v48';
+const APP_VERSION='v49';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1644,6 +1690,9 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Asistente (Gemini)<small>${aiKey()?'Llave guardada en este teléfono.':'Pega tu llave gratuita de Google AI Studio (aistudio.google.com → Get API key).'}</small></span>
+      <div style="display:flex;gap:8px"><input type="password" id="ms-aikey" placeholder="${aiKey()?'•••••••• (pega otra para cambiarla)':'Llave de Gemini'}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" id="ms-aisave" type="button">Guardar</button></div>
+      ${aiKey()?'<button class="btn" id="ms-aidel" type="button" style="align-self:flex-start">Quitar llave</button>':''}</div>
     <div class="row"><button class="btn primary" id="ms-ok">Listo</button></div>`);
   const mixDesc=()=>{
     const n=P.filter(isSep).length;
@@ -1656,8 +1705,142 @@ $('m-set').onclick=()=>{
   $('ms-dark').onchange=e=>{ theme=e.target.checked?'oscuro':'claro'; applyTheme(); };
   $('ms-forget').onclick=()=>{ ls.del(K_PASS); toast('La clave se pedirá la próxima vez'); };
   bindScale();
+  $('ms-aisave').onclick=async ()=>{ const v=$('ms-aikey').value.trim(); if(!v){ toast('Pega la llave primero'); return; }
+    ls.set(K_AIKEY,v); ls.del(K_AIMODEL); toast('Comprobando la llave…');
+    try{ const m=await aiPickModel(true); toast('Llave guardada · '+aiNice(m)); closeModal(); }
+    catch(e){ toast(aiErrMsg(e)); } };
+  if($('ms-aidel')) $('ms-aidel').onclick=()=>{ ls.del(K_AIKEY); ls.del(K_AIMODEL); closeModal(); toast('Llave quitada de este teléfono'); };
   $('ms-ok').onclick=closeModal;
 };
+
+/* =========================================================
+   Asistente con Gemini (llave guardada solo en este teléfono)
+   ========================================================= */
+const K_AIKEY='tarifario-gemini-key', K_AIMODEL='tarifario-gemini-model';
+const AI_BASE='https://generativelanguage.googleapis.com/v1beta/';
+let aiHist=[], aiBusy=false;
+const aiKey=()=>ls.get(K_AIKEY);
+const aiNice=m=>String(m||'').replace(/^models\//,'');
+function aiErrMsg(e){
+  const s=e&&e.status;
+  if(s===429) return 'Llegaste al límite gratuito de Gemini por ahora. Espera un minuto e inténtalo de nuevo.';
+  if(s===400||s===401||s===403) return 'Gemini rechazó la llave. Revísala en Opciones.';
+  if(e&&e.message==='sin-modelo') return 'Tu llave no tiene un modelo Flash disponible.';
+  return 'No se pudo conectar con Gemini. Revisa tu conexión.';
+}
+async function aiFetch(url,opt){
+  const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({'x-goog-api-key':aiKey(),'Content-Type':'application/json'},(opt||{}).headers||{})}));
+  if(!r.ok){ const e=new Error('http'); e.status=r.status; try{ e.body=await r.text(); }catch(x){} throw e; }
+  return r.json();
+}
+/* elige el mejor modelo "Flash" disponible para la llave (los Flash tienen plan gratuito) */
+async function aiPickModel(force){
+  const saved=ls.get(K_AIMODEL); if(saved && !force) return saved;
+  const j=await aiFetch(AI_BASE+'models?pageSize=200');
+  const ok=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+    .map(m=>m.name).filter(n=>/flash/i.test(n) && !/(lite|image|tts|audio|live|thinking|exp|preview|embedding|8b)/i.test(n));
+  const ver=n=>{ const m=n.match(/gemini-(\d+(?:\.\d+)?)/); return m?parseFloat(m[1]):0; };
+  ok.sort((a,b)=>ver(b)-ver(a) || a.length-b.length);
+  let pick=ok[0];
+  if(!pick){ const lite=(j.models||[]).map(m=>m.name).filter(n=>/flash-lite/i.test(n)&&!/preview|exp/i.test(n)).sort((a,b)=>ver(b)-ver(a)); pick=lite[0]; }
+  if(!pick){ const e=new Error('sin-modelo'); throw e; }
+  ls.set(K_AIMODEL,pick); return pick;
+}
+/* resumen de los datos del tarifario que se envía como contexto */
+function aiContext(){
+  const L=[];
+  L.push(`Moneda: pesos colombianos (COP). Fecha de los precios: ${lastUpdated?new Date(lastUpdated).toLocaleString('es-CO'):'sin guardar'}.`);
+  L.push(`Configuración general: margen objetivo ${S.obj}%, margen saludable ${S.health}%, margen mínimo general ${S.floor}%, gasto operativo general por prenda ${S.go} COP, redondeo de precios a ${S.round} COP.`);
+  L.push('Tramos (desde unidades → descuento deseado sobre el precio detal): '+S.tiers.map((x,i)=>`${tierLabel(i)} u. → ${x.d}%`).join('; ')+'.');
+  L.push(`Regla del cotizador: "Sumar prendas para el tramo" está ${mMix?'ENCENDIDA (las prendas de distintos productos se suman para elegir el tramo, excepto los productos marcados "por separado", que usan solo su propia cantidad)':'APAGADA (cada producto usa solo su propia cantidad)'}.`);
+  L.push('Margen = (precio − costo) ÷ precio. Costo por prenda = costo base + gasto operativo. Un tramo nunca baja del margen mínimo del producto salvo que tenga precio manual.');
+  L.push('');
+  L.push('PRODUCTOS (nombre | género | proveedor | costo base | gasto op. | costo total | margen mín. | marcas | precios por tramo como "tramo: precio (ganancia por prenda, margen)"):');
+  P.forEach(p=>{
+    const T=tiers(p), marks=[];
+    if(hasGo(p)&&+p.gop!==(S.go||0)) marks.push('gasto propio');
+    if(hasFl(p)&&+p.flp!==S.floor) marks.push('margen mínimo propio');
+    if(hasManual(p)) marks.push('precios manuales en algunos tramos');
+    if(isSep(p)) marks.push('cuenta por separado');
+    const tt = T ? T.map((x,i)=>`${tierLabel(i)}: ${Math.round(x.price)} (${Math.round(x.price-x.c)}, ${(x.m*100).toFixed(1)}%)${x.why==='manual'?' manual':''}`).join('; ') : 'sin costo o sin precio: no se pueden calcular tramos';
+    L.push(`- ${p.prod} | ${p.gen||'-'} | ${p.prov||'-'} | ${p.cb} | ${goOf(p)} | ${p.cb?varCost(p):'-'} | ${floorOf(p)}% | ${marks.join(', ')||'-'} | ${tt}`);
+  });
+  const c=mCalc();
+  L.push('');
+  if(c.V.length){
+    L.push(`PEDIDO EN CURSO EN EL COTIZADOR (${c.total} prendas, total a cobrar ${Math.round(c.rev)} COP, costo ${Math.round(c.cost)} COP, ganancia ${Math.round(c.rev-c.cost)} COP):`);
+    c.rows.forEach(r=>L.push(`- ${r.p.prod} ${r.p.gen} × ${r.l.q}: ${r.T?`${Math.round(r.pu)} c/u (tramo ${tierLabel(r.ti)}) = ${Math.round(r.line)}`:'sin precio calculable'}`));
+  } else L.push('PEDIDO EN CURSO: vacío.');
+  return L.join('\n');
+}
+const AI_SYS = `Eres el asistente del "Tarifario de precios por volumen" de una tienda de ropa (franelas, buzos, joggers, chemis, etc.).
+Respondes en español, de forma breve y directa, a preguntas del dueño sobre sus precios, costos, márgenes, tramos de descuento y cotizaciones.
+Reglas:
+- Usa SOLO los datos del tarifario que vienen en el mensaje. Si un dato no está, dilo; no lo inventes.
+- Para cotizar una cantidad, ubica el tramo correspondiente y usa el precio de ese tramo tal como aparece en la lista. Si varias prendas se suman (según la regla del cotizador), el tramo sale del total de prendas que suman.
+- Escribe los montos como "COP 24.000" (punto de miles, sin decimales) y los porcentajes con una decimal y coma (ej. 27,5%).
+- Muestra las cuentas en pocas líneas cuando ayuden. Usa listas cortas si comparas varios productos.
+- Si te piden un precio que bajaría del margen mínimo de un producto, adviértelo.
+- No des consejos de inversión ni temas ajenos al tarifario.`;
+function aiMd(s){
+  let h=esc(s);
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g,'$1<em>$2</em>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  const lines=h.split('\n'); let out='', inList=false;
+  lines.forEach(l=>{
+    const m=l.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)$/);
+    if(m){ if(!inList){ out+='<ul>'; inList=true; } out+=`<li>${m[1]}</li>`; }
+    else { if(inList){ out+='</ul>'; inList=false; } out+= l.trim() ? `<p>${l}</p>` : ''; }
+  });
+  if(inList) out+='</ul>';
+  return out;
+}
+const AI_SUG=['¿A cuánto queda el pedido en curso y cuánto gano?','¿Qué productos dejan menos de 20% de margen en algún tramo?','¿Cuál es el descuento máximo que puedo dar en el buzo capucha de niño?','Cotiza 30 franelas manga corta de caballero AS'];
+function aiRender(){
+  const list=$('mc-list');
+  if(!aiHist.length){
+    list.innerHTML=`<div class="mc-empty"><div class="mc-spark"><svg viewBox="0 0 24 24"><path d="M12 3.5l1.7 4.3 4.3 1.7-4.3 1.7L12 15.5l-1.7-4.3L6 9.5l4.3-1.7z"/></svg></div>
+      <h3>Pregúntale a tu tarifario</h3><p>Responde con tus productos, costos, tramos y el pedido en curso.</p>
+      <div class="mc-sugs">${AI_SUG.map(s=>`<button type="button" class="mc-sug">${esc(s)}</button>`).join('')}</div></div>`;
+    list.querySelectorAll('.mc-sug').forEach(b=>b.onclick=()=>aiAsk(b.textContent));
+    return;
+  }
+  list.innerHTML=aiHist.map(m=>`<div class="mc-msg ${m.role==='user'?'me':'ai'}${m.err?' err':''}">${m.role==='user'?`<p>${esc(m.text)}</p>`:aiMd(m.text)}</div>`).join('')+(aiBusy?'<div class="mc-msg ai typing"><span></span><span></span><span></span></div>':'');
+  list.scrollTop=list.scrollHeight;
+}
+async function aiAsk(q){
+  q=String(q||'').trim(); if(!q || aiBusy) return;
+  if(!aiKey()){ toast('Primero pega tu llave de Gemini en Opciones'); $('m-set').click(); return; }
+  aiHist.push({role:'user',text:q}); aiBusy=true; aiRender();
+  $('mc-in').value=''; aiGrow();
+  try{
+    const model=await aiPickModel();
+    $('mc-model').textContent='Gemini · '+aiNice(model);
+    const turns=aiHist.filter(m=>!m.err).slice(-12);
+    const contents=turns.map((m,i)=>({role:m.role==='user'?'user':'model', parts:[{text: (i===turns.length-1 && m.role==='user') ? `DATOS ACTUALES DEL TARIFARIO:\n${aiContext()}\n\nPREGUNTA: ${m.text}` : m.text}]}));
+    const j=await aiFetch(AI_BASE+model+':generateContent',{method:'POST',body:JSON.stringify({systemInstruction:{parts:[{text:AI_SYS}]},contents,generationConfig:{temperature:0.2,maxOutputTokens:1200}})});
+    const txt=((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
+    aiHist.push({role:'model',text: txt || 'No obtuve respuesta. Intenta reformular la pregunta.'});
+  }catch(e){
+    if(e&&e.status===404){ ls.del(K_AIMODEL); }
+    aiHist.push({role:'model',text:aiErrMsg(e),err:true});
+  }
+  aiBusy=false; aiRender();
+}
+function aiGrow(){ const i=$('mc-in'); i.style.height='auto'; i.style.height=Math.min(120,i.scrollHeight)+'px'; }
+function aiOpen(){
+  if(!aiKey()){ toast('Pega tu llave gratuita de Gemini en Opciones para usar el asistente'); $('m-set').click(); return; }
+  $('m-chat').hidden=false; const m=ls.get(K_AIMODEL); $('mc-model').textContent='Gemini'+(m?' · '+aiNice(m):''); aiRender();
+  try{ history.pushState({chat:1},''); aiGuard=true; }catch(e){}
+}
+let aiGuard=false;
+function aiClose(fromPop){ $('m-chat').hidden=true; if(aiGuard && !fromPop){ aiGuard=false; try{ history.back(); }catch(e){} } aiGuard=false; }
+$('m-ai').onclick=aiOpen;
+$('mc-close').onclick=()=>aiClose(false);
+$('mc-clear').onclick=()=>{ aiHist=[]; aiRender(); };
+$('mc-form').addEventListener('submit', e=>{ e.preventDefault(); aiAsk($('mc-in').value); });
+$('mc-in').addEventListener('input', aiGrow);
+$('mc-in').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); aiAsk($('mc-in').value); } });
+window.addEventListener('popstate', ()=>{ if(!$('m-chat').hidden) aiClose(true); });
 
 /* tamaño de la interfaz (por dispositivo) */
 const K_SCALE='tarifario-escala', SCALES=[[80,'Muy pequeño'],[90,'Pequeño'],[100,'Normal']];
