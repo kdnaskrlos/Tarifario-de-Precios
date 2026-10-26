@@ -83,6 +83,9 @@ input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
 .filters{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--line);align-items:center}
 .filters input[type=search]{flex:0 1 190px;width:190px}
+.ur-btn{display:inline-flex;align-items:center;gap:6px}
+.ur-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ur-btn.icon-only{padding:6px 8px}
 .tp-btn{color:var(--accent);border-color:var(--accent)}
 .tableWrap{overflow-x:auto}
 .panel > .tableWrap{overflow:auto;max-height:calc(100vh - 24px)}
@@ -428,7 +431,8 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
         </select>
         <div class="toolbar">
           <button class="btn primary" id="b-add">+ Agregar producto</button>
-          <button class="btn" id="b-undo" disabled>Deshacer</button>
+          <button class="btn ur-btn" id="b-undo" disabled title="Deshacer (Ctrl+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Deshacer</button>
+          <button class="btn ur-btn" id="b-redo" disabled title="Rehacer (Ctrl+Y)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>Rehacer</button>
           <button class="btn" id="b-copy">Exportar CSV</button>
           <button class="btn" id="b-import">Importar CSV</button>
           <button class="btn" id="b-reset">Descartar cambios</button>
@@ -440,6 +444,8 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
         <button class="btn" id="bk-dup">Duplicar</button>
         <button class="btn" id="bk-quote">Agregar al cotizador</button>
         <button class="btn" id="bk-copy">Exportar selección</button>
+        <button class="btn ur-btn icon-only" id="bk-undo" type="button" disabled title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+        <button class="btn ur-btn icon-only" id="bk-redo" type="button" disabled title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
         <select id="bk-act" aria-label="Editar en lote">
           <option value="">Editar en lote…</option>
           <option value="prov">Cambiar proveedor</option>
@@ -526,7 +532,8 @@ let Q = [{i:-1,q:1}];
 let chk = new Set(), undoStack = [];
 function uid(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function ensureIds(){ const seen=new Set(); P.forEach(p=>{ if(!p.id||seen.has(p.id)) p.id=uid(); seen.add(p.id); if(!p.old) p.old=[0,0,0,0,0]; }); }
-function snapshot(){ undoStack.push(JSON.stringify(P)); if(undoStack.length>40) undoStack.shift(); }
+let redoStack=[];
+function snapshot(){ undoStack.push(JSON.stringify(P)); if(undoStack.length>40) undoStack.shift(); redoStack=[]; }
 S = JSON.parse(JSON.stringify(DEF)); P = [];
 
 const fmtT = v => (v==null||!isFinite(v)) ? '—' : 'COP ' + Math.round(v).toLocaleString('es-CO');
@@ -755,11 +762,27 @@ $('b-add').onclick=()=>{
   const el=$('c-'+nid+'-prod'); if(el){ el.focus(); el.select(); }
   toast('Producto agregado: completa nombre, costo y precio');
 };
-$('b-undo').onclick=()=>{
-  if(!undoStack.length) return;
+function doUndo(){
+  if(!undoStack.length){ toast('No hay nada que deshacer'); return; }
+  redoStack.push(JSON.stringify(P));
   const prev=JSON.parse(undoStack.pop());
   remap(()=>{ P=prev; }); refresh(); toast('Cambio deshecho');
-};
+}
+function doRedo(){
+  if(!redoStack.length){ toast('No hay nada que rehacer'); return; }
+  undoStack.push(JSON.stringify(P));
+  const next=JSON.parse(redoStack.pop());
+  remap(()=>{ P=next; }); refresh(); toast('Cambio rehecho');
+}
+$('b-undo').onclick=doUndo; $('b-redo').onclick=doRedo; $('bk-undo').onclick=doUndo; $('bk-redo').onclick=doRedo;
+document.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey||e.metaKey) || e.altKey || document.body.classList.contains('movil')) return;
+  const k=e.key.toLowerCase(), a=document.activeElement;
+  const typing = a && (a.tagName==='TEXTAREA' || (a.tagName==='INPUT' && !['checkbox','radio','button'].includes(a.type)) || a.isContentEditable);
+  if(typing || !$('modal').hidden) return;   // dentro de un campo, Ctrl+Z deshace lo que se escribe
+  if(k==='z' && !e.shiftKey){ e.preventDefault(); doUndo(); }
+  else if(k==='y' || (k==='z' && e.shiftKey)){ e.preventDefault(); doRedo(); }
+});
 $('bk-clear').onclick=()=>{ chk.clear(); renderTable(); };
 $('bk-dup').onclick=()=>{
   const n=chk.size; const copies=new Set();
@@ -1126,7 +1149,7 @@ function refresh(){
   const a=document.activeElement, aid=a&&a.id&&a!==document.body?a.id:null;
   let ss=null; try{ ss=a&&a.selectionStart; }catch(e){}
   renderRules(); renderFilters(); renderAlerts(); renderTable(); renderDetail(); renderQuote(); renderDiag(); if(document.body.classList.contains('movil')) renderM();
-  $('b-undo').disabled=!undoStack.length; updateSync();
+  $('b-undo').disabled=$('bk-undo').disabled=!undoStack.length; $('b-redo').disabled=$('bk-redo').disabled=!redoStack.length; updateSync();
   if(aid){ const el=$(aid); if(el && el!==document.activeElement){ el.focus(); try{ if(ss!=null) el.setSelectionRange(ss,ss); }catch(e){} } }
 }
 /* ---------- Tema ---------- */
@@ -1148,7 +1171,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v37';
+const APP_VERSION='v38';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1221,7 +1244,7 @@ function applyData(d, keepQuote){
   const nextS=Object.assign(JSON.parse(JSON.stringify(DEF)), d.S||{});
   if(keepQuote) remap(()=>{ S=nextS; P=d.P||[]; });
   else { S=nextS; P=d.P||[]; ensureIds(); Q=MOVIL?mLoadQuote():[{i:-1,q:1}]; sel=0; }
-  undoStack=[]; chk.clear(); forceDirty=false;
+  undoStack=[]; redoStack=[]; chk.clear(); forceDirty=false;
   lastUpdated=d.actualizado||null; lastSync=Date.now(); syncErr='';
   savedStr=stateStr(); refresh();
 }
