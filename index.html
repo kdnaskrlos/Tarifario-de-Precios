@@ -1207,7 +1207,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v47';
+const APP_VERSION='v48';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1531,12 +1531,14 @@ $('m-undo-b').onclick=()=>{
 };
 /* deslizar a la izquierda para quitar una tarjeta */
 (function(){
-  let sw=null, card=null, x0=0, y0=0, dx=0, mode=null, w=0;
+  let sw=null, card=null, x0=0, y0=0, dx=0, mode=null, w=0, zf=1;
   const list=$('m-list');
   list.addEventListener('touchstart', e=>{
     if(e.touches.length!==1) return;
     const s=e.target.closest('.m-sw'); if(!s || e.target.closest('input,button')) return;
-    sw=s; card=s.querySelector('.m-card'); w=s.offsetWidth;
+    sw=s; card=s.querySelector('.m-card');
+    // con el tamaño de interfaz reducido, el dedo se mide en píxeles de pantalla y la tarjeta en píxeles escalados
+    const rw=s.getBoundingClientRect().width; w=rw; zf = s.offsetWidth ? rw/s.offsetWidth : 1;
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; dx=0; mode=null;
     sw.classList.remove('anim');
   }, {passive:true});
@@ -1546,7 +1548,7 @@ $('m-undo-b').onclick=()=>{
     if(!mode){ if(Math.abs(mx)<8 && Math.abs(my)<8) return; mode = Math.abs(mx)>Math.abs(my) && mx<0 ? 'x' : 'y'; }
     if(mode!=='x') return;
     dx=Math.min(0,mx);
-    card.style.transform=`translateX(${dx}px)`;
+    card.style.transform=`translateX(${dx/zf}px)`;
     sw.querySelector('.m-sw-bg').style.opacity=Math.min(1,-dx/60);
     sw.classList.toggle('ready', -dx>w*0.85);
   }, {passive:true});
@@ -1556,7 +1558,7 @@ $('m-undo-b').onclick=()=>{
     if(mode!=='x') return;
     s.classList.add('anim');
     if(-dx>w*0.85){
-      c.style.transform=`translateX(${-w-20}px)`;
+      c.style.transform=`translateX(${(-w-20)/zf}px)`;
       s.style.height=s.offsetHeight+'px';
       requestAnimationFrame(()=>{ s.style.height='0px'; s.style.opacity='0'; s.style.marginTop='-10px'; });
       setTimeout(()=>mRemove(k), 260);
