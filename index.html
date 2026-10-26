@@ -1258,7 +1258,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v56';
+const APP_VERSION='v57';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1708,7 +1708,7 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
-    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Basta con una llave. Si tienes las dos, usa OpenRouter primero y pasa a Groq si falla.</small></span>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Usa los modelos gratuitos de OpenRouter. Si uno está saturado, pasa solo a otro.</small></span>
       ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><strong>${pv.name}</strong>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
         <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
     </div>
@@ -1737,7 +1737,7 @@ $('m-set').onclick=()=>{
 };
 
 /* =========================================================
-   Asistente con IA: OpenRouter (modelos gratis) y Groq
+   Asistente con IA: OpenRouter (modelos gratis)
    Las llaves se guardan solo en este teléfono.
    ========================================================= */
 let aiHist=[], aiBusy=false, aiLast='';
@@ -1777,29 +1777,10 @@ const AI_PROV = {
       if(j.error){ const e=new Error('http'); e.status=j.error.code||500; e.body=JSON.stringify(j); throw e; }
       return {text:((j.choices||[])[0]?.message?.content||'').trim(), model:j.model||list[0]};
     }
-  },
-  groq: {
-    name:'Groq', keyK:'tarifario-groq-key', modelK:'tarifario-groq-model',
-    help:'Llave gratuita de console.groq.com → API Keys. No usa tus datos para entrenar.',
-    hdr(){ return {'Authorization':'Bearer '+this.key(),'Content-Type':'application/json'}; },
-    async pick(force){
-      const s=ls.get(this.modelK); if(s && !force) return s;
-      const j=await aiHttp('https://api.groq.com/openai/v1/models',{headers:this.hdr()});
-      const ids=(j.data||[]).filter(m=>m.active!==false).map(m=>m.id).filter(id=>!/(whisper|guard|tts|playai|vision|embed|distil|compound|safeguard|orpheus|prompt)/i.test(id));
-      const score=id=>(/versatile/i.test(id)?50:0)+(/gpt-oss-120b/i.test(id)?60:0)+(/70b/i.test(id)?40:0)+(/llama/i.test(id)?5:0)+verOf(id,/(\d+(?:\.\d+)?)/)/10-(/8b|instant|mini|small/i.test(id)?30:0)-(/preview/i.test(id)?5:0);
-      ids.sort((x,y)=>score(y)-score(x));
-      if(!ids[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Groq'});
-      ls.set(this.modelK,ids[0]); return ids[0];
-    },
-    async send(sys,turns){
-      const model=await this.pick();
-      const j=await aiHttp('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:this.hdr(),
-        body:JSON.stringify({model,temperature:0.2,max_tokens:1200,messages:[{role:'system',content:sys},...turns.map(m=>({role:m.role==='user'?'user':'assistant',content:m.text}))]})});
-      return {text:((j.choices||[])[0]?.message?.content||'').trim(), model};
-    }
   }
 };
-const AI_ORDER=['openrouter','groq'];
+const AI_ORDER=['openrouter'];
+try{ localStorage.removeItem('tarifario-groq-key'); localStorage.removeItem('tarifario-groq-model'); }catch(e){}
 // Gemini y Claude se retiraron: borra las llaves que hubieran quedado guardadas en este teléfono
 try{ ['tarifario-gemini-key','tarifario-gemini-model','tarifario-claude-key','tarifario-claude-model'].forEach(k=>localStorage.removeItem(k)); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
