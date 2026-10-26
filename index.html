@@ -82,7 +82,8 @@ input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 /* Main grid */
 .main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
 .filters{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--line);align-items:center}
-.filters input[type=search]{flex:1 1 180px}
+.filters input[type=search]{flex:0 1 190px;width:190px}
+.tp-btn{color:var(--accent);border-color:var(--accent)}
 .tableWrap{overflow-x:auto}
 .panel > .tableWrap{overflow:auto;max-height:calc(100vh - 24px)}
 @media (min-width:1281px){.panel > .tableWrap{overflow:clip;max-height:none}}
@@ -204,8 +205,6 @@ table.prices tbody tr.checked{background:var(--accent-soft)}
 .tp-in:focus{background:var(--panel)!important;border-color:var(--accent)!important}
 .tp .cur{margin-right:2px}
 .tp-in.own{background:var(--accent-soft)!important;border-color:var(--accent)!important;color:var(--accent);font-weight:700}
-table.prices tr.th-top th{padding:6px 6px 0;border-bottom:0;box-shadow:none;height:34px}
-table.prices tr.th-top + tr th, table.prices thead tr:nth-child(2) th{top:34px}
 .th-reset{text-align:right!important}
 .th-reset span{margin-right:10px}
 .mini-btn{padding:3px 10px;font-size:11.5px;text-transform:none;letter-spacing:0;font-weight:600}
@@ -422,7 +421,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
   <div id="v-tabla" class="main">
     <section class="panel" aria-label="Tabla de precios">
       <div class="filters">
-        <input type="search" id="f-q" placeholder="Buscar producto o género">
+        <input type="search" id="f-q" placeholder="Buscar producto">
         <select id="f-prov" aria-label="Proveedor"></select>
         <select id="f-state" aria-label="Estado">
           <option value="">Todos los estados</option><option value="good">Saludable</option><option value="warn">Bajo saludable</option><option value="bad">Bajo mínimo</option><option value="none">Faltan datos</option><option value="go">Gasto operativo propio</option><option value="fl">Margen mínimo propio</option><option value="tp">Precio manual</option>
@@ -433,6 +432,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
           <button class="btn" id="b-copy">Exportar CSV</button>
           <button class="btn" id="b-import">Importar CSV</button>
           <button class="btn" id="b-reset">Descartar cambios</button>
+          <button class="btn tp-btn" id="tp-reset" type="button" hidden>↺ Restablecer a precios del sistema</button>
         </div>
       </div>
       <div class="bulk" id="bulk" hidden>
@@ -452,7 +452,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
           <option value="goGen">Usar el gasto operativo general</option>
           <option value="flp">Fijar margen mínimo propio (%)</option>
           <option value="flGen">Usar el margen mínimo general</option>
-          <option value="tpGen">Restablecer precios de tramos</option>
+          <optgroup label="Precios por tramo" id="bk-tp"></optgroup>
           <option value="toObj">Llevar detal al margen objetivo</option>
         </select>
         <input id="bk-val" type="text" hidden aria-label="Valor">
@@ -583,6 +583,8 @@ function avgMargin(){
 /* ---------- Reglas ---------- */
 function renderRules(){
   $('r-obj').value=S.obj; $('r-health').value=S.health; $('r-floor').value=S.floor; $('r-round').value=S.round; $('r-go').value=S.go; renderWarnCards(); $('q-mix').checked=S.mix;
+  $('bk-tp').innerHTML = S.tiers.slice(1).map((t,k)=>`<option value="tp:${k+1}">Fijar precio ${tierLabel(k+1)} u.</option>`).join('')
+    + '<option value="tpPct">Subir o bajar precios de tramos (%)</option><option value="tpGen">Restablecer a precios del sistema</option>';
   $('tierRows').innerHTML = S.tiers.map((t,i)=>{
     return `<tr><td class="mono">${tierLabel(i)}</td>
       <td><input type="number" id="tm-${i}" data-i="${i}" data-k="min" min="1" value="${t.min}" ${i===0?'disabled':''} aria-label="Desde tramo ${i+1}"></td>
@@ -649,8 +651,7 @@ function numIn(p,f,step){ return `<input class="cell-in num" type="number" id="c
 function renderTable(){
   const rows = visibleRows();
   const allChk = rows.length>0 && rows.every(({p})=>chk.has(p.id)), someChk = rows.some(({p})=>chk.has(p.id));
-  const nMan=mpOwn().length;
-  $('thead').innerHTML = `<tr class="th-top"><th colspan="7"></th><th colspan="${S.tiers.length}" class="th-reset"><span>Precios por tramo</span><button class="btn mini-btn" type="button" id="tp-reset"${nMan?'':' disabled'} title="Vuelve a los precios calculados por el sistema">↺ Restablecer valores del sistema${nMan?` (${nMan})`:''}</button></th></tr><tr><th class="chk"><input type="checkbox" id="chk-all" aria-label="Seleccionar todos los visibles"${allChk?' checked':''}></th><th class="prod">Producto · género · proveedor</th><th>Costo base</th><th title="Vacío = usa el gasto general">Gasto op.</th><th>Costo total</th><th>Precio detal</th><th>Estado</th>${S.tiers.map((t,i)=>`<th>${tierLabel(i)} u.</th>`).join('')}</tr>`;
+  $('thead').innerHTML = `<tr><th class="chk"><input type="checkbox" id="chk-all" aria-label="Seleccionar todos los visibles"${allChk?' checked':''}></th><th class="prod">Producto · género · proveedor</th><th>Costo base</th><th title="Vacío = usa el gasto general">Gasto op.</th><th>Costo total</th><th>Precio detal</th><th>Estado</th>${S.tiers.map((t,i)=>`<th>${tierLabel(i)} u.</th>`).join('')}</tr>`;
   $('chk-all').indeterminate = someChk && !allChk;
   $('tbody').innerHTML = rows.map(({p,i})=>{
     const s=status(p), T=tiers(p), c=unitCost(p), on=chk.has(p.id);
@@ -666,10 +667,10 @@ function renderTable(){
       <td>${numIn(p,'cb',100)}</td><td>${goIn(p)}</td><td class="n">${p.cb?fmt(c):'—'}</td><td>${numIn(p,'list',500)}</td>
       <td><span class="pill ${s.k}">${s.t}</span></td>${cells}</tr>`;
   }).join('') || `<tr><td colspan="${7+S.tiers.length}" style="text-align:center;color:var(--muted);padding:24px">${P.length?'Ningún producto coincide con el filtro.':'<div class="empty-start"><h3>Tu tarifario está vacío</h3><p>Importa tu hoja de precios en CSV o la tabla copiada desde la versión anterior, o crea los productos uno por uno. Al terminar, toca “Guardar en GitHub”.</p><div class="toolbar" style="justify-content:center"><button class="btn primary" data-act="import">Importar CSV</button><button class="btn" data-act="add">+ Agregar producto</button></div></div>'}</td></tr>`;
-  renderBulk();
+  renderBulk(); updateTpBtn();
 }
 function selectRow(i){
-  if(sel===i) return; sel=i;
+  if(sel===i) return; sel=i; updateTpBtn();
   document.querySelectorAll('#tbody tr[data-i]').forEach(tr=>tr.classList.toggle('sel', +tr.dataset.i===i));
   renderDetail();
 }
@@ -708,11 +709,16 @@ $('tbody').addEventListener('change', e=>{
   setTimeout(refresh,0);
 });
 let tpArm=false;
-$('thead').addEventListener('click', e=>{
-  const b=e.target.closest('#tp-reset'); if(!b || b.disabled) return;
-  const sel=checkedList().filter(hasManual), list = sel.length ? sel : mpOwn();
-  if(!tpArm){ tpArm=true; b.textContent=`¿Restablecer ${list.length} producto${list.length>1?'s':''}? Toca otra vez`; setTimeout(()=>{ tpArm=false; renderTable(); },3500); return; }
-  tpArm=false; snapshot(); list.forEach(p=>{ delete p.mp; }); if($('f-state').value==='tp') $('f-state').value=''; refresh();
+function tpTargets(){ const c=checkedList(); return (c.length ? c : (P[sel]?[P[sel]]:[])).filter(hasManual); }
+function updateTpBtn(){
+  const b=$('tp-reset'); if(!b) return;
+  const list=tpTargets(); b.hidden=!list.length;
+  if(!tpArm) b.textContent = `↺ Restablecer a precios del sistema${list.length>1?` (${list.length})`:''}`;
+}
+$('tp-reset').addEventListener('click', ()=>{
+  const b=$('tp-reset'), list=tpTargets(); if(!list.length) return;
+  if(!tpArm){ tpArm=true; b.textContent=`¿Restablecer ${list.length>1?list.length+' productos':'este producto'}? Toca otra vez`; setTimeout(()=>{ tpArm=false; updateTpBtn(); },3500); return; }
+  tpArm=false; snapshot(); list.forEach(p=>{ delete p.mp; }); if($('f-state').value==='tp' && !mpOwn().length) $('f-state').value=''; refresh();
   toast(`Precios del sistema restablecidos en ${list.length} producto${list.length>1?'s':''}`);
 });
 $('thead').addEventListener('change', e=>{
@@ -776,13 +782,14 @@ $('bk-del').onclick=()=>{
   mutate(()=>{ P=P.filter(p=>!chk.has(p.id)); }, n===1?'1 producto eliminado. Puedes deshacerlo.':n+' productos eliminados. Puedes deshacerlo.');
   chk.clear(); refresh();
 };
+function bkCfg(a){ return a && a.startsWith('tp:') ? {type:'number',ph:'Precio en COP'} : BK[a]; }
 const BK = {
   prov:{type:'text',ph:'Nuevo proveedor'}, gen:{type:'text',ph:'Nuevo género'},
   cb:{type:'number',ph:'Costo en COP'}, list:{type:'number',ph:'Precio en COP'},
-  listPct:{type:'number',ph:'Ej: 5 o -5'}, cbPct:{type:'number',ph:'Ej: 8 o -3'}, gop:{type:'number',ph:'Gasto en COP'}, flp:{type:'number',ph:'Margen en %'}, toObj:null, goGen:null, flGen:null, tpGen:null
+  listPct:{type:'number',ph:'Ej: 5 o -5'}, cbPct:{type:'number',ph:'Ej: 8 o -3'}, gop:{type:'number',ph:'Gasto en COP'}, flp:{type:'number',ph:'Margen en %'}, toObj:null, goGen:null, flGen:null, tpGen:null, tpPct:{type:'number',ph:'Ej: -5 o 3'}
 };
 $('bk-act').addEventListener('change', e=>{
-  const a=e.target.value, cfg=BK[a];
+  const a=e.target.value, cfg=bkCfg(a);
   $('bk-apply').hidden = !a;
   $('bk-val').hidden = !cfg;
   if(cfg){ $('bk-val').type=cfg.type; $('bk-val').placeholder=cfg.ph; $('bk-val').value=''; $('bk-val').focus(); }
@@ -791,8 +798,9 @@ $('bk-val').addEventListener('keydown', e=>{ if(e.key==='Enter') $('bk-apply').c
 $('bk-apply').onclick=()=>{
   const a=$('bk-act').value; if(!a) return;
   const raw=$('bk-val').value.trim(), v=+raw, r=S.round;
-  if(BK[a] && raw===''){ toast('Escribe un valor para aplicar'); $('bk-val').focus(); return; }
-  if(BK[a] && BK[a].type==='number' && !isFinite(v)){ toast('El valor debe ser un número'); return; }
+  const cfg=bkCfg(a);
+  if(cfg && raw===''){ toast('Escribe un valor para aplicar'); $('bk-val').focus(); return; }
+  if(cfg && cfg.type==='number' && !isFinite(v)){ toast('El valor debe ser un número'); return; }
   const list=checkedList(); let skipped=0;
   mutate(()=>{ list.forEach(p=>{
     if(a==='prov'||a==='gen') p[a]=raw;
@@ -803,6 +811,12 @@ $('bk-apply').onclick=()=>{
     else if(a==='flp'){ const f=Math.min(80,Math.max(0,Math.round(v))); if(f===S.floor) delete p.flp; else p.flp=f; }
     else if(a==='flGen'){ delete p.flp; }
     else if(a==='tpGen'){ delete p.mp; }
+    else if(a.startsWith('tp:') || a==='tpPct'){
+      const T=tiers(p); if(!T){ skipped++; return; }
+      const set=(i,val)=>{ val=Math.max(0,Math.round(val)); if(val===T[i].auto){ if(p.mp){ delete p.mp[i]; if(!Object.keys(p.mp).length) delete p.mp; } } else { p.mp=p.mp||{}; p.mp[i]=val; } };
+      if(a==='tpPct') for(let i=1;i<T.length;i++) set(i, Math.round(T[i].price*(1+v/100)/r)*r);
+      else set(+a.slice(3), v);
+    }
     else if(a==='cbPct'){ if(p.cb) p.cb=Math.max(0,Math.round(p.cb*(1+v/100))); else skipped++; }
     else if(a==='toObj'){ if(p.cb) p.list=Math.ceil(varCost(p)/(1-S.obj/100)/r)*r; else skipped++; }
   }); });
