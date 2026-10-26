@@ -1257,7 +1257,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v51';
+const APP_VERSION='v52';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1694,7 +1694,7 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
-    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Se usa en orden: Groq → Gemini → Claude. Si uno está saturado o llega a su límite, pasa al siguiente. Basta con una llave.</small></span>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Usa Groq; si está saturado o llega a su límite y tienes llave de Claude, pasa a Claude. Basta con la llave de Groq.</small></span>
       ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><strong>${pv.name}</strong>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
         <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
     </div>
@@ -1722,7 +1722,7 @@ $('m-set').onclick=()=>{
 };
 
 /* =========================================================
-   Asistente con IA: Groq (principal), Gemini y Claude (respaldo)
+   Asistente con IA: Groq (principal) y Claude (respaldo opcional)
    Las llaves se guardan solo en este teléfono.
    ========================================================= */
 let aiHist=[], aiBusy=false, aiLast='';
@@ -1757,31 +1757,6 @@ const AI_PROV = {
       return {text:((j.choices||[])[0]?.message?.content||'').trim(), model};
     }
   },
-  gemini: {
-    name:'Gemini', keyK:'tarifario-gemini-key', modelK:'tarifario-gemini-model',
-    help:'Llave gratuita de aistudio.google.com/apikey. En el plan gratis Google puede usar los datos para mejorar sus productos.',
-    async req(url,opt){
-      const k=this.key();
-      try{ return await aiHttp(url,Object.assign({},opt,{headers:{'x-goog-api-key':k,'Content-Type':'application/json'}})); }
-      catch(e){ if(e && !e.status && e.name!=='AbortError') return await aiHttp(url+(url.includes('?')?'&':'?')+'key='+encodeURIComponent(k),Object.assign({},opt,{headers:{'Content-Type':'application/json'}})); throw e; }
-    },
-    async pick(force){
-      const s=ls.get(this.modelK); if(s && !force) return s;
-      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200');
-      const all=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name);
-      const v=n=>verOf(n,/gemini-(\d+(?:\.\d+)?)/);
-      let ok=all.filter(n=>/flash/i.test(n) && !/(lite|image|tts|audio|live|thinking|exp|preview|embedding|8b)/i.test(n)).sort((a,b)=>v(b)-v(a)||a.length-b.length);
-      if(!ok.length) ok=all.filter(n=>/flash-lite/i.test(n)&&!/preview|exp/i.test(n)).sort((a,b)=>v(b)-v(a));
-      if(!ok[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Gemini'});
-      ls.set(this.modelK,ok[0]); return ok[0];
-    },
-    async send(sys,turns){
-      const model=await this.pick();
-      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/'+model+':generateContent',{method:'POST',
-        body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:turns.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.text}]})),generationConfig:{temperature:0.2,maxOutputTokens:1200}})});
-      return {text:((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim(), model};
-    }
-  },
   claude: {
     name:'Claude', keyK:'tarifario-claude-key', modelK:'tarifario-claude-model',
     help:'Llave de pago de console.anthropic.com (se cobra por uso; usa Claude Haiku, el más económico).',
@@ -1795,9 +1770,10 @@ const AI_PROV = {
     }
   }
 };
-const AI_ORDER=['groq','gemini','claude'];
+const AI_ORDER=['groq','claude'];
+// Gemini se retiró: borra la llave que hubiera quedado guardada en este teléfono
+try{ ['tarifario-gemini-key','tarifario-gemini-model'].forEach(k=>localStorage.removeItem(k)); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
-// migra la llave de Gemini guardada por la versión anterior (misma clave de almacenamiento)
 const aiReady=()=>AI_ORDER.filter(k=>AI_PROV[k].key());
 const aiKey=()=>aiReady().length>0;
 const aiNice=m=>String(m||'').replace(/^models\//,'');
