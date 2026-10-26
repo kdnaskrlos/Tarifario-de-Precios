@@ -86,6 +86,8 @@ input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .ur-btn{display:inline-flex;align-items:center;gap:6px}
 .ur-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ur-btn.icon-only{padding:6px 8px}
+.sep-chip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--violet-bg);color:var(--violet);white-space:nowrap;margin-top:4px;font-family:var(--f-body);letter-spacing:0;text-transform:none}
+#bk-sep.on{background:var(--violet-bg);color:var(--violet);border-color:var(--violet)}
 .tp-btn{color:var(--accent);border-color:var(--accent)}
 .tableWrap{overflow-x:auto}
 .panel > .tableWrap{overflow:auto;max-height:calc(100vh - 24px)}
@@ -176,7 +178,7 @@ table.prices tbody tr.checked{background:var(--accent-soft)}
 .bulk input{width:120px;flex:0 0 auto}
 .bulk .spacer{flex:1 1 0;min-width:4px}
 .bulk .btn{padding:6px 10px;font-size:12.5px;white-space:nowrap;flex:0 0 auto}
-.bulk select{flex:0 0 auto;width:auto}
+.bulk select{flex:0 0 auto;width:170px}
 .bulk .count{white-space:nowrap}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
@@ -427,7 +429,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
         <input type="search" id="f-q" placeholder="Buscar producto">
         <select id="f-prov" aria-label="Proveedor"></select>
         <select id="f-state" aria-label="Estado">
-          <option value="">Todos los estados</option><option value="good">Saludable</option><option value="warn">Bajo saludable</option><option value="bad">Bajo mínimo</option><option value="none">Faltan datos</option><option value="go">Gasto operativo propio</option><option value="fl">Margen mínimo propio</option><option value="tp">Precio manual</option>
+          <option value="">Todos los estados</option><option value="good">Saludable</option><option value="warn">Bajo saludable</option><option value="bad">Bajo mínimo</option><option value="none">Faltan datos</option><option value="go">Gasto operativo propio</option><option value="fl">Margen mínimo propio</option><option value="tp">Precio manual</option><option value="sep">Cuenta por separado</option>
         </select>
         <div class="toolbar">
           <button class="btn primary" id="b-add">+ Agregar producto</button>
@@ -443,6 +445,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
         <span class="count" id="bulk-n"></span>
         <button class="btn" id="bk-dup">Duplicar</button>
         <button class="btn" id="bk-quote">Agregar al cotizador</button>
+        <button class="btn" id="bk-sep" type="button" title="El tramo de estos productos se calcula solo con su propia cantidad">Contar por separado</button>
         <button class="btn" id="bk-copy">Exportar selección</button>
         <button class="btn ur-btn icon-only" id="bk-undo" type="button" disabled title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
         <button class="btn ur-btn icon-only" id="bk-redo" type="button" disabled title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
@@ -579,6 +582,7 @@ function tiers(p){
 function manualOf(p,i){ const v = p.mp && p.mp[i]; return (v!=null && v!=='' && isFinite(v) && +v>0) ? +v : null; }
 function hasManual(p){ return !!(p.mp && Object.keys(p.mp).some(k=>manualOf(p,+k)!=null)); }
 function mpOwn(){ return P.filter(hasManual); }
+function isSep(p){ return !!(p && p.sep); }
 function tierIndex(q){ let k=0; S.tiers.forEach((t,i)=>{ if(q>=t.min) k=i; }); return k; }
 function priceAt(p,q){ const T=tiers(p); return T? T[tierIndex(q)].price : null; }
 function reqVol(m,d){ return d<=0 ? 0 : (d>=m ? Infinity : d/(m-d)); }
@@ -646,6 +650,7 @@ function visibleRows(){
     if(st==='go'){ if(!(hasGo(p) && +p.gop!==(S.go||0))) return false; }
     else if(st==='fl'){ if(!(hasFl(p) && +p.flp!==S.floor)) return false; }
     else if(st==='tp'){ if(!hasManual(p)) return false; }
+    else if(st==='sep'){ if(!isSep(p)) return false; }
     else if(st && status(p).k!==st) return false;
     return true;
   });
@@ -672,7 +677,7 @@ function renderTable(){
       <td><input class="cell-in pname-in" type="text" id="c-${p.id}-prod" data-id="${p.id}" data-f="prod" value="${esc(p.prod)}" placeholder="Nombre del producto" aria-label="Producto">
         <div class="psub-row"><input class="cell-in" type="text" id="c-${p.id}-gen" data-id="${p.id}" data-f="gen" value="${esc(p.gen)}" placeholder="Género" aria-label="Género"><input class="cell-in" type="text" id="c-${p.id}-prov" data-id="${p.id}" data-f="prov" value="${esc(p.prov)}" placeholder="Proveedor" aria-label="Proveedor"></div></td>
       <td>${numIn(p,'cb',100)}</td><td>${goIn(p)}</td><td class="n">${p.cb?fmt(c):'—'}</td><td>${numIn(p,'list',500)}</td>
-      <td><span class="pill ${s.k}">${s.t}</span></td>${cells}</tr>`;
+      <td><span class="pill ${s.k}">${s.t}</span>${isSep(p)?'<div><span class="sep-chip" title="En el cotizador, su tramo se calcula solo con su propia cantidad">Por separado</span></div>':''}</td>${cells}</tr>`;
   }).join('') || `<tr><td colspan="${7+S.tiers.length}" style="text-align:center;color:var(--muted);padding:24px">${P.length?'Ningún producto coincide con el filtro.':'<div class="empty-start"><h3>Tu tarifario está vacío</h3><p>Importa tu hoja de precios en CSV o la tabla copiada desde la versión anterior, o crea los productos uno por uno. Al terminar, toca “Guardar en GitHub”.</p><div class="toolbar" style="justify-content:center"><button class="btn primary" data-act="import">Importar CSV</button><button class="btn" data-act="add">+ Agregar producto</button></div></div>'}</td></tr>`;
   renderBulk(); updateTpBtn();
 }
@@ -753,6 +758,9 @@ function renderBulk(){
   const n=chk.size; $('bulk').hidden = !n;
   $('bulk-n').textContent = n===1 ? '1 seleccionado' : n+' seleccionados';
   if(!n) disarmDel();
+  const allSep = n && checkedList().every(isSep);
+  $('bk-sep').textContent = allSep ? 'Contar en el pedido' : 'Contar por separado';
+  $('bk-sep').classList.toggle('on', !!allSep);
 }
 $('b-add').onclick=()=>{
   $('f-q').value=''; $('f-state').value='';
@@ -783,6 +791,12 @@ document.addEventListener('keydown', e=>{
   if(k==='z' && !e.shiftKey){ e.preventDefault(); doUndo(); }
   else if(k==='y' || (k==='z' && e.shiftKey)){ e.preventDefault(); doRedo(); }
 });
+$('bk-sep').onclick=()=>{
+  const list=checkedList(); if(!list.length) return;
+  const toSep = !list.every(isSep);
+  mutate(()=>{ list.forEach(p=>{ if(toSep) p.sep=true; else delete p.sep; }); },
+    toSep ? `${list.length} producto${list.length>1?'s cuentan':' cuenta'} por separado en el cotizador` : `${list.length} producto${list.length>1?'s vuelven':' vuelve'} a sumar con el pedido`);
+};
 $('bk-clear').onclick=()=>{ chk.clear(); renderTable(); };
 $('bk-dup').onclick=()=>{
   const n=chk.size; const copies=new Set();
@@ -963,19 +977,21 @@ function renderQuoteSum(){
   if(!P.length){ $('qsum').innerHTML='<div class="eyebrow">Sin productos</div><p>Agrega productos en el tarifario para poder cotizar.</p>'; return; }
   const V = Q.filter(l=>l.i>=0 && P[l.i]);
   if(!V.length){ $('qsum').innerHTML='<div class="eyebrow">Resumen</div><p style="color:var(--muted);margin:0">Busca y elige una prenda para ver la cotización.</p>'; return; }
-  const total = V.reduce((a,l)=>a+l.q,0);
+  const total = V.reduce((a,l)=>a+l.q,0), mixT = V.filter(l=>!isSep(P[l.i])).reduce((a,l)=>a+l.q,0);
+  const qOf = l => (S.mix && !isSep(P[l.i])) ? mixT : l.q;
   let rev=0, cost=0, list=0, missing=false, lines='';
   V.forEach(l=>{
-    const p=P[l.i]; const qq = S.mix? total : l.q;
+    const p=P[l.i]; const qq = qOf(l);
     const T=tiers(p); if(!T){ missing=true; lines+=`<div class="qrow"><span>${esc(p.prod)} × ${l.q}</span><span class="num">sin costo</span></div>`; return; }
     const pu=T[tierIndex(qq)].price; rev+=pu*l.q; list+=p.list*l.q; cost+=varCost(p)*l.q;
-    lines+=`<div class="qrow"><span>${esc(p.prod)} ${esc(p.gen)} × ${l.q}</span><span class="num">${fmt(pu)} c/u</span></div>`;
+    lines+=`<div class="qrow"><span>${esc(p.prod)} ${esc(p.gen)} × ${l.q}${isSep(p)&&S.mix?' <span class="sep-chip">por separado</span>':''}</span><span class="num">${fmt(pu)} c/u</span></div>`;
   });
-  const ti = tierIndex(total);
+  const ti = tierIndex(mixT);
   let nudge='';
-  if(S.mix && ti < S.tiers.length-1 && !missing){
-    const nx=S.tiers[ti+1].min, extra=nx-total;
-    let rev2=0; V.forEach((l,k)=>{ const T=tiers(P[l.i]); rev2+=T[ti+1].price*(l.q+(k===0?extra:0)); });
+  const Vm=V.filter(l=>!isSep(P[l.i]));
+  if(S.mix && Vm.length && ti < S.tiers.length-1 && !missing){
+    const nx=S.tiers[ti+1].min, extra=nx-mixT;
+    let rev2=0; V.forEach(l=>{ const T=tiers(P[l.i]); rev2 += isSep(P[l.i]) ? T[tierIndex(l.q)].price*l.q : T[ti+1].price*(l.q+(l===Vm[0]?extra:0)); });
     const diff=rev2-rev;
     nudge=`<div class="nudge"><strong>Oportunidad:</strong> con ${extra} prenda${extra>1?'s':''} más el pedido pasa al tramo ${tierLabel(ti+1)} y baja el precio de todas las prendas. El cliente pagaría ${fmt(rev2)} en total (${diff>=0?'solo '+fmt(diff)+' más':fmt(-diff)+' menos'}).</div>`;
   }
@@ -988,7 +1004,7 @@ function renderQuoteSum(){
     ${nudge}
     <button class="btn" id="q-copy">Copiar cotización</button>`;
   $('q-copy').onclick=()=>{
-    const txt = quoteText(V.filter(l=>tiers(P[l.i])).map(l=>({p:P[l.i], q:l.q, pu:priceAt(P[l.i],S.mix?total:l.q)})), total, rev);
+    const txt = quoteText(V.filter(l=>tiers(P[l.i])).map(l=>({p:P[l.i], q:l.q, pu:priceAt(P[l.i],qOf(l))})), total, rev);
     copy(txt,'Cotización copiada');
   };
 }
@@ -1171,7 +1187,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v38';
+const APP_VERSION='v39';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
@@ -1403,24 +1419,24 @@ function mSaveQuote(V){ if(!P.length) return; ls.set(K_MQ, JSON.stringify(V.map(
 function mLoadQuote(){ try{ const a=JSON.parse(ls.get(K_MQ)||'[]'); return a.map(x=>({i:P.findIndex(p=>p.id===x.id),q:Math.max(1,x.q|0)})).filter(l=>l.i>=0); }catch(e){ return []; } }
 function mItems(){ return Q.filter(l=>l.i>=0 && P[l.i]); }
 function mCalc(){
-  const V=mItems(), total=V.reduce((a,l)=>a+l.q,0);
+  const V=mItems(), total=V.reduce((a,l)=>a+l.q,0), mix=V.filter(l=>!isSep(P[l.i])).reduce((a,l)=>a+l.q,0);
   let rev=0, det=0, cost=0, missing=false;
   const rows=V.map(l=>{
-    const p=P[l.i], T=tiers(p), qq=mMix?total:l.q;
+    const p=P[l.i], T=tiers(p), qq=(mMix && !isSep(p))?mix:l.q;
     if(!T){ missing=true; return {l,p,T:null}; }
     const ti=tierIndex(qq), pu=T[ti].price;
     rev+=pu*l.q; det+=p.list*l.q; cost+=varCost(p)*l.q;
     return {l,p,T,ti,pu,line:pu*l.q};
   });
-  return {V,rows,total,rev,det,cost,missing};
+  return {V,rows,total,mix,rev,det,cost,missing};
 }
 function mCardHTML(r,c){
       const k=Q.indexOf(r.l), p=r.p;
-  const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}</div></div>${stepper(k,r.l.q)}`;
+  const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}${isSep(p)&&mMix?' <span class="sep-chip">Por separado</span>':''}</div></div>${stepper(k,r.l.q)}`;
   if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-pu"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
   const disc=Math.round((1-r.pu/p.list)*100);
   const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
-  const have = mMix ? c.total : r.l.q, extra = nx ? nx.min-have : 0;
+  const have = (mMix && !isSep(p)) ? c.mix : r.l.q, extra = nx ? nx.min-have : 0;
   const offer = nx && nx.pr<r.pu && extra>0 ? `<div class="c-of"><b>OFERTA</b>${fmt(nx.pr)} si sumas ${extra} pieza${extra>1?'s':''} más</div>` : '';
   return `<article class="m-card${k===mLast?' hl':''}" data-k="${k}">${head}
     <div class="c-pu"><div class="c-price"><span class="c-now">${fmt(r.pu)}<span class="c-u">/ unid.</span></span>${r.ti>0?`<span class="c-was"><s>${fmt(p.list)}</s><span class="c-u">/ unid.</span><span class="m-chip">−${disc}%</span></span>`:''}</div></div>
