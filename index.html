@@ -1258,7 +1258,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v55';
+const APP_VERSION='v56';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1325,8 +1325,16 @@ function updateSync(){
 }
 setInterval(updateSync, 30000);
 
-function modal(html){ $('modal-box').innerHTML=html; $('modal').hidden=false; const f=$('modal-box').querySelector('input,textarea,button'); if(f && !MOVIL) setTimeout(()=>f.focus(),30); }
-function closeModal(){ $('modal').hidden=true; $('modal-box').innerHTML=''; }
+/* botón atrás del teléfono con una ventana abierta: cierra la ventana y vuelve a la pantalla principal */
+let modalGuard=false;
+const modalLocked=()=>!!$('modal-box').querySelector('#pw-form,#ft-form,.spin');   // la clave y la carga no se pueden saltar
+function modal(html){ $('modal-box').innerHTML=html; $('modal').hidden=false; const f=$('modal-box').querySelector('input,textarea,button'); if(f && !MOVIL) setTimeout(()=>f.focus(),30);
+  if(!modalGuard && !modalLocked()){ try{ history.pushState({ventana:1},''); modalGuard=true; }catch(e){} } }
+let modalBackT=0, modalSkipPop=false;
+function closeModal(fromPop){ $('modal').hidden=true; $('modal-box').innerHTML='';
+  if(fromPop===true){ modalGuard=false; return; }
+  if(modalGuard){ clearTimeout(modalBackT); modalBackT=setTimeout(()=>{ modalBackT=0; if($('modal').hidden && modalGuard){ modalGuard=false; modalSkipPop=true; try{ history.back(); }catch(e){ modalSkipPop=false; } } },0); } }
+window.addEventListener('popstate', ()=>{ if(modalSkipPop){ modalSkipPop=false; return; } if(!modalGuard) return; if(!$('modal').hidden && modalLocked()){ try{ history.pushState({ventana:1},''); }catch(e){} return; } modalGuard=false; if(!$('modal').hidden){ const a=document.activeElement; if(a && a.blur) a.blur(); closeModal(true); } });
 function showLoading(msg){ modal(`<div class="spin" aria-hidden="true"></div><p style="text-align:center">${msg||'Cargando tus precios…'}</p>`); }
 
 function applyData(d, keepQuote){
