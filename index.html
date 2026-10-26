@@ -23,7 +23,7 @@
 :root{
   --bg:#f3f5f7; --panel:#ffffff; --ink:#18212d; --muted:#5d6878; --line:#dde2e8; --soft:#e9edf2;
   --accent:#2c4f8c; --accent-soft:#e3eaf6; --thread:#c4622d; --thread-soft:#f8e7dd;
-  --good:#1f7a4d; --good-bg:#e2f3ea; --warn:#9a6a00; --warn-bg:#fbf0d4; --bad:#b3322b; --bad-bg:#fbe4e2; --none:#6b7280; --none-bg:#eceef1; --violet:#6b46c1; --violet-bg:#efe9fb;
+  --good:#1f7a4d; --good-bg:#e2f3ea; --warn:#9a6a00; --warn-bg:#fbf0d4; --bad:#b3322b; --bad-bg:#fbe4e2; --none:#6b7280; --none-bg:#eceef1; --violet:#6b46c1; --violet-bg:#efe9fb; --teal:#0f766e; --teal-bg:#dcf2ef;
   --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -31,11 +31,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#10151c; --panel:#171e27; --ink:#e6ebf1; --muted:#9aa6b5; --line:#2a3440; --soft:#1e2731;
   --accent:#86a8e6; --accent-soft:#1f2c42; --thread:#e58a57; --thread-soft:#3a2519;
-  --good:#5fcf95; --good-bg:#16302a; --warn:#e6bb52; --warn-bg:#352b12; --bad:#f08a82; --bad-bg:#3a1c1b; --none:#a3acb8; --none-bg:#242c36; --violet:#b69cf2; --violet-bg:#2a2140; color-scheme:dark}}
+  --good:#5fcf95; --good-bg:#16302a; --warn:#e6bb52; --warn-bg:#352b12; --bad:#f08a82; --bad-bg:#3a1c1b; --none:#a3acb8; --none-bg:#242c36; --violet:#b69cf2; --violet-bg:#2a2140; --teal:#5ed3c4; --teal-bg:#12302d; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#10151c; --panel:#171e27; --ink:#e6ebf1; --muted:#9aa6b5; --line:#2a3440; --soft:#1e2731;
   --accent:#86a8e6; --accent-soft:#1f2c42; --thread:#e58a57; --thread-soft:#3a2519;
-  --good:#5fcf95; --good-bg:#16302a; --warn:#e6bb52; --warn-bg:#352b12; --bad:#f08a82; --bad-bg:#3a1c1b; --none:#a3acb8; --none-bg:#242c36; --violet:#b69cf2; --violet-bg:#2a2140; color-scheme:dark}
+  --good:#5fcf95; --good-bg:#16302a; --warn:#e6bb52; --warn-bg:#352b12; --bad:#f08a82; --bad-bg:#3a1c1b; --none:#a3acb8; --none-bg:#242c36; --violet:#b69cf2; --violet-bg:#2a2140; --teal:#5ed3c4; --teal-bg:#12302d; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
@@ -86,8 +86,8 @@ input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 .ur-btn{display:inline-flex;align-items:center;gap:6px}
 .ur-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ur-btn.icon-only{padding:6px 8px}
-.sep-chip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--violet-bg);color:var(--violet);white-space:nowrap;margin-top:4px;font-family:var(--f-body);letter-spacing:0;text-transform:none}
-#bk-sep.on{background:var(--violet-bg);color:var(--violet);border-color:var(--violet)}
+.sep-chip{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--teal-bg);color:var(--teal);white-space:nowrap;margin-top:4px;font-family:var(--f-body);letter-spacing:0;text-transform:none}
+#bk-sep.on{background:var(--teal-bg);color:var(--teal);border-color:var(--teal)}
 .tp-btn{color:var(--accent);border-color:var(--accent)}
 .tableWrap{overflow-x:auto}
 .panel > .tableWrap{overflow:auto;max-height:calc(100vh - 24px)}
@@ -204,6 +204,7 @@ table.prices tbody tr.checked{background:var(--accent-soft)}
 .wcard.w-go{background:var(--warn-bg);color:var(--warn)}
 .wcard.w-fl{background:var(--violet-bg);color:var(--violet)}
 .wcard.w-tp{background:var(--accent-soft);color:var(--accent)}
+.wcard.w-sep{background:var(--teal-bg);color:var(--teal)}
 .tp-in{width:54px!important;padding:1px 2px!important;font-size:13px!important;text-align:right;background:transparent!important;border-color:transparent!important;-moz-appearance:textfield}
 .tp-in::-webkit-outer-spin-button,.tp-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .tp-in:hover{border-color:var(--line)!important}
@@ -621,12 +622,13 @@ function renderWarnCards(){
   const defs=[
     {k:'go', cls:'w-go', n:goOwn().length, t:'Gasto operativo propio', d:`Distinto al general (${fmt(S.go||0)}).`, clear:p=>{ delete p.gop; }, done:'vuelven al gasto general'},
     {k:'fl', cls:'w-fl', n:flOwn().length, t:'Margen mínimo propio', d:`Distinto al general (${S.floor}%).`, clear:p=>{ delete p.flp; }, done:'vuelven al margen mínimo general'},
-    {k:'tp', cls:'w-tp', n:mpOwn().length, t:'Precios manuales', d:'Algún tramo con precio fijado a mano.', clear:p=>{ delete p.mp; }, done:'vuelven a los precios del sistema'}
+    {k:'tp', cls:'w-tp', n:mpOwn().length, t:'Precios manuales', d:'Algún tramo con precio fijado a mano.', clear:p=>{ delete p.mp; }, done:'vuelven a los precios del sistema'},
+    {k:'sep', cls:'w-sep', n:P.filter(isSep).length, t:'Cuentan por separado', d:'Su tramo usa solo su propia cantidad en el cotizador.', clear:p=>{ delete p.sep; }, done:'vuelven a sumar con el pedido', btn:'Contar en el pedido'}
   ].filter(x=>x.n);
   const w=$('warn-cards');
   w.hidden=!defs.length;
   w.innerHTML=defs.map(x=>`<div class="wcard ${x.cls}"><b class="num">${x.n}</b><div class="wt"><strong>${x.t}</strong><small>${x.d}</small></div>
-    <div class="wa"><button class="btn" type="button" data-see="${x.k}">Ver</button><button class="btn" type="button" data-all="${x.k}">${x.k==='tp'?'Restablecer':'Usar el general'}</button></div></div>`).join('');
+    <div class="wa"><button class="btn" type="button" data-see="${x.k}">Ver</button><button class="btn" type="button" data-all="${x.k}">${x.btn||(x.k==='tp'?'Restablecer':'Usar el general')}</button></div></div>`).join('');
   w.querySelectorAll('[data-see]').forEach(b=>b.onclick=()=>{ $('f-state').value=b.dataset.see; $('f-q').value=''; $('f-prov').value=''; renderTable(); renderAlerts(); $('v-tabla').scrollIntoView({behavior:'smooth',block:'start'}); });
   w.querySelectorAll('[data-all]').forEach(b=>{ let arm=false; const x=defs.find(d=>d.k===b.dataset.all), label=b.textContent;
     b.onclick=()=>{
@@ -1187,7 +1189,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v39';
+const APP_VERSION='v40';
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
 const MOVIL = (window.matchMedia('(max-width: 820px)').matches && !/[?&]completo/.test(location.search)) || /[?&]movil/.test(location.search);
