@@ -1258,7 +1258,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v59';
+const APP_VERSION='v60';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1885,13 +1885,51 @@ function aiMd(s){
   if(inList) out+='</ul>';
   return out;
 }
-const AI_SUG=['¿A cuánto queda el pedido en curso y cuánto gano?','¿Qué productos dejan menos de 20% de margen en algún tramo?','¿Cuál es el descuento máximo que puedo dar en el buzo capucha de niño?','Cotiza 30 franelas manga corta de caballero AS'];
+/* preguntas sugeridas: cambian cada vez que se abre el asistente o se empieza una conversación nueva */
+let aiSugs=[], aiSugPrev=[];
+const aiPick=a=>a[Math.floor(Math.random()*a.length)];
+function aiNewSugs(){
+  const prods=P.filter(p=>p && p.prod && tiers(p));
+  const nm=p=>[p.prod,p.gen,p.prov].filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+  const rp=()=>nm(aiPick(prods)), rp2=()=>{ const a=aiPick(prods); let b=aiPick(prods); for(let t=0;t<5&&b===a&&prods.length>1;t++) b=aiPick(prods); return [nm(a),nm(b)]; }, qn=()=>aiPick([10,12,15,18,20,24,30,36,40,50,60,100]);
+  const tl=()=>tierLabel(1+Math.floor(Math.random()*Math.max(1,S.tiers.length-1)));
+  const pool=[
+    '¿Qué productos dejan menos de '+S.health+'% de margen en algún tramo?',
+    '¿Cuáles son mis 3 productos con mejor margen?',
+    '¿Cuáles son mis 3 productos con peor margen al detal?',
+    '¿Qué producto me deja más ganancia por prenda?',
+    '¿Qué productos tienen precios fijados a mano?',
+    '¿Qué productos cuentan por separado y por qué importa?',
+    'Explícame cómo se calculan los tramos de descuento',
+    '¿Cuántas prendas necesita un cliente para llegar al siguiente tramo?',
+    '¿En qué tramo empiezo a ganar menos del '+S.health+'%?',
+    'Resume mi tarifario en 5 puntos',
+    '¿Algún producto está por debajo del margen mínimo?',
+    '¿Qué pasa con mis márgenes si el gasto operativo sube 500 COP?',
+  ];
+  if(prods.length){
+    pool.push(
+      'Cotiza '+qn()+' '+rp(),
+      (([a,b])=>'Cotiza '+qn()+' '+a+' y '+qn()+' '+b)(rp2()),
+      '¿Cuál es el descuento máximo que puedo dar en '+rp()+'?',
+      '¿Cuánto gano vendiendo '+qn()+' '+rp()+'?',
+      '¿Cuánto cuesta '+rp()+' en el tramo de '+tl()+' unidades?',
+      (([a,b])=>'Compara el margen de '+a+' y '+b)(rp2()),
+      '¿A qué precio mínimo puedo vender '+rp()+'?',
+      'Si vendo '+rp()+' a 10% menos, ¿cuánto margen me queda?'
+    );
+  }
+  try{ if(mItems().length) pool.push('¿A cuánto queda el pedido en curso y cuánto gano?','¿Cuántas prendas más necesita este pedido para bajar de tramo?','¿Puedo dar un descuento extra en este pedido sin bajar del '+S.health+'%?','Escribe un mensaje para enviarle este pedido al cliente'); }catch(e){}
+  const uniq=[...new Set(pool)].filter(q=>!aiSugPrev.includes(q));
+  for(let i=uniq.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [uniq[i],uniq[j]]=[uniq[j],uniq[i]]; }
+  aiSugs=uniq.slice(0,4); aiSugPrev=aiSugs.slice();
+}
 function aiRender(){
   const list=$('mc-list');
   if(!aiHist.length){
     list.innerHTML=`<div class="mc-empty"><div class="mc-spark"><svg viewBox="0 0 24 24"><path d="M12 3.5l1.7 4.3 4.3 1.7-4.3 1.7L12 15.5l-1.7-4.3L6 9.5l4.3-1.7z"/></svg></div>
       <h3>Pregúntale a tu tarifario</h3><p>Responde con tus productos, costos, tramos y el pedido en curso.</p>
-      <div class="mc-sugs">${AI_SUG.map(s=>`<button type="button" class="mc-sug">${esc(s)}</button>`).join('')}</div></div>`;
+      <div class="mc-sugs">${(aiSugs.length?aiSugs:(aiNewSugs(),aiSugs)).map(s=>`<button type="button" class="mc-sug">${esc(s)}</button>`).join('')}</div></div>`;
     list.querySelectorAll('.mc-sug').forEach(b=>b.onclick=()=>aiAsk(b.textContent));
     return;
   }
@@ -1919,6 +1957,7 @@ function aiGrow(){ const i=$('mc-in'); i.style.height='auto'; i.style.height=Mat
 function aiOpen(){
   if(!aiKey()){ toast('Pega una llave de IA gratuita en Opciones para usar el asistente'); $('m-set').click(); return; }
   setVP(true);
+  if(!aiHist.length) aiNewSugs();
   $('m-chat').hidden=false; $('mc-model').textContent = aiLast || aiReady().map(k=>AI_PROV[k].name).join(' → '); aiRender();
   try{ history.pushState({chat:1},''); aiGuard=true; }catch(e){}
 }
@@ -1928,7 +1967,7 @@ function setVP(chat){ const v=$('vp'); if(v) v.setAttribute('content','width=dev
 function aiClose(fromPop){ $('m-chat').hidden=true; setVP(false); if(aiGuard && !fromPop){ aiGuard=false; try{ history.back(); }catch(e){} } aiGuard=false; }
 $('m-ai').onclick=aiOpen;
 $('mc-close').onclick=()=>aiClose(false);
-$('mc-clear').onclick=()=>{ aiHist=[]; aiRender(); };
+$('mc-clear').onclick=()=>{ aiHist=[]; aiNewSugs(); aiRender(); };
 $('mc-form').addEventListener('submit', e=>{ e.preventDefault(); aiAsk($('mc-in').value); });
 $('mc-in').addEventListener('input', aiGrow);
 $('mc-in').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); aiAsk($('mc-in').value); } });
