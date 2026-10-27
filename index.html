@@ -1258,7 +1258,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v60';
+const APP_VERSION='v61';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1708,7 +1708,7 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
-    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Basta con una llave. Si tienes las dos, usa Gemini primero y pasa a OpenRouter si falla.</small></span>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Usa los modelos gratuitos de OpenRouter. Si uno está saturado, pasa solo a otro.</small></span>
       ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><strong>${pv.name}</strong>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
         <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
     </div>
@@ -1737,7 +1737,7 @@ $('m-set').onclick=()=>{
 };
 
 /* =========================================================
-   Asistente con IA: Gemini y OpenRouter (modelos gratis)
+   Asistente con IA: OpenRouter (modelos gratis)
    Las llaves se guardan solo en este teléfono.
    ========================================================= */
 let aiHist=[], aiBusy=false, aiLast='';
@@ -1777,36 +1777,10 @@ const AI_PROV = {
       if(j.error){ const e=new Error('http'); e.status=j.error.code||500; e.body=JSON.stringify(j); throw e; }
       return {text:((j.choices||[])[0]?.message?.content||'').trim(), model:j.model||list[0]};
     }
-  },
-  gemini: {
-    name:'Gemini', keyK:'tarifario-gemini-key', modelK:'tarifario-gemini-model',
-    help:'Llave gratuita de aistudio.google.com/apikey. En el plan gratis Google puede usar los datos para mejorar sus productos.',
-    async req(url,opt){
-      const k=this.key();
-      try{ return await aiHttp(url,Object.assign({},opt,{headers:{'x-goog-api-key':k,'Content-Type':'application/json'}})); }
-      catch(e){ if(e && !e.status && e.name!=='AbortError') return await aiHttp(url+(url.includes('?')?'&':'?')+'key='+encodeURIComponent(k),Object.assign({},opt,{headers:{'Content-Type':'application/json'}})); throw e; }
-    },
-    async pick(force){
-      const s=ls.get(this.modelK); if(s && !force) return s;
-      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200');
-      const all=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name);
-      const v=n=>verOf(n,/gemini-(\d+(?:\.\d+)?)/);
-      let ok=all.filter(n=>/flash/i.test(n) && !/(lite|image|tts|audio|live|thinking|exp|preview|embedding|8b)/i.test(n)).sort((a,b)=>v(b)-v(a)||a.length-b.length);
-      if(!ok.length) ok=all.filter(n=>/flash-lite/i.test(n)&&!/preview|exp/i.test(n)).sort((a,b)=>v(b)-v(a));
-      if(!ok[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Gemini'});
-      ls.set(this.modelK,ok[0]); return ok[0];
-    },
-    async send(sys,turns){
-      const model=await this.pick();
-      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/'+model+':generateContent',{method:'POST',
-        body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:turns.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.text}]})),generationConfig:{temperature:0.2,maxOutputTokens:1200}})});
-      const text=((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
-      if(!text){ const e=new Error('http'); e.status=500; e.body=JSON.stringify({error:{message:'respuesta vacía'+((j.candidates||[])[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'')}}); throw e; }
-      return {text, model};
-    }
   }
 };
-const AI_ORDER=['gemini','openrouter'];
+const AI_ORDER=['openrouter'];
+try{ localStorage.removeItem('tarifario-gemini-key'); localStorage.removeItem('tarifario-gemini-model'); }catch(e){}
 try{ localStorage.removeItem('tarifario-claude-key'); localStorage.removeItem('tarifario-claude-model'); }catch(e){}
 try{ localStorage.removeItem('tarifario-groq-key'); localStorage.removeItem('tarifario-groq-model'); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
