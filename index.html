@@ -1259,7 +1259,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v62';
+const APP_VERSION='v63';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1709,7 +1709,7 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
-    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Marca las IA que quieres usar en el chat. Si marcas las dos, se les pregunta a la vez y responde la primera que conteste; si una falla, responde la otra.</small></span>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Marca las IA que quieres usar en el chat. Si marcas varias, se les pregunta a la vez y responde la primera que conteste; si una falla, responde otra.</small></span>
       ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><label class="ai-use"><input type="checkbox" data-aion="${k}"${aiOn(k)?' checked':''}><strong>${pv.name}</strong></label>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
         <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
     </div>
@@ -1744,7 +1744,7 @@ $('m-set').onclick=()=>{
 };
 
 /* =========================================================
-   Asistente con IA: OpenRouter (modelos gratis)
+   Asistente con IA: OpenRouter, Gemini y Groq (gratis)
    Las llaves se guardan solo en este teléfono.
    ========================================================= */
 let aiHist=[], aiBusy=false, aiLast='';
@@ -1811,11 +1811,33 @@ const AI_PROV = {
       if(!text){ const e=new Error('http'); e.status=500; e.body=JSON.stringify({error:{message:'respuesta vacía'+((j.candidates||[])[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'')}}); throw e; }
       return {text, model};
     }
+  },
+  groq: {
+    name:'Groq', keyK:'tarifario-groq-key', modelK:'tarifario-groq-model',
+    help:'Llave gratuita de console.groq.com → API Keys. No usa tus datos para entrenar.',
+    hdr(){ return {'Authorization':'Bearer '+this.key(),'Content-Type':'application/json'}; },
+    async pick(force){
+      const s=ls.get(this.modelK); if(s && !force) return s;
+      const j=await aiHttp('https://api.groq.com/openai/v1/models',{headers:this.hdr()});
+      const ids=(j.data||[]).filter(m=>m.active!==false).map(m=>m.id).filter(id=>!/(whisper|guard|tts|playai|vision|embed|distil|compound|safeguard|orpheus|prompt)/i.test(id));
+      const score=id=>(/versatile/i.test(id)?50:0)+(/gpt-oss-120b/i.test(id)?60:0)+(/70b/i.test(id)?40:0)+(/llama/i.test(id)?5:0)+verOf(id,/(\d+(?:\.\d+)?)/)/10-(/8b|instant|mini|small/i.test(id)?30:0)-(/preview/i.test(id)?5:0);
+      ids.sort((x,y)=>score(y)-score(x));
+      if(!ids[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Groq'});
+      ls.set(this.modelK,ids[0]); return ids[0];
+    },
+    async send(sys,turns){
+      const model=await this.pick();
+      const j=await aiHttp('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:this.hdr(),
+        body:JSON.stringify({model,temperature:0.2,max_tokens:1200,messages:[{role:'system',content:sys},...turns.map(m=>({role:m.role==='user'?'user':'assistant',content:m.text}))]})});
+      if(j.error){ const e=new Error('http'); e.status=j.error.code||500; e.body=JSON.stringify(j); throw e; }
+      const text=((j.choices||[])[0]?.message?.content||'').trim();
+      if(!text){ const e=new Error('http'); e.status=500; e.body='{"error":{"message":"respuesta vacía"}}'; throw e; }
+      return {text, model};
+    }
   }
 };
-const AI_ORDER=['openrouter','gemini'];
+const AI_ORDER=['openrouter','gemini','groq'];
 try{ localStorage.removeItem('tarifario-claude-key'); localStorage.removeItem('tarifario-claude-model'); }catch(e){}
-try{ localStorage.removeItem('tarifario-groq-key'); localStorage.removeItem('tarifario-groq-model'); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
 const aiOnK=k=>'tarifario-ai-on-'+k;
 const aiOn=k=>ls.get(aiOnK(k))!=='0';
