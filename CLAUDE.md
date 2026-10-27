@@ -24,14 +24,14 @@ Léelo antes de tocar nada. Resume lo que el dueño (kdnaskrlos, Venezuela, hora
 - En el móvil, el mix suma las prendas para elegir el tramo, excepto las de productos por separado.
 
 ## Asistente con IA (móvil)
-- Proveedores: OpenRouter (modelos `:free`, con cambio automático entre 3), Gemini y Groq.
+- Proveedores: OpenRouter (modelos `:free`, con cambio automático entre 3) y Gemini.
 - En Opciones hay una casilla por IA. Si hay varias marcadas, se les pregunta a la vez y gana la primera respuesta válida; si una falla, responde otra. Al menos una debe quedar marcada.
-- Claude y la API de Anthropic **no** están disponibles en Venezuela; el usuario pidió quitar Claude. Gemini le ha fallado varias veces.
+- Claude y la API de Anthropic **no** están disponibles en Venezuela; el usuario pidió quitar Claude. Groq también se quitó porque bloquea Venezuela (403); no ofrecer VPN dentro de la app, ya lo rechazó. Gemini le ha fallado varias veces.
 - Las preguntas sugeridas cambian al abrir el chat y al empezar una conversación nueva, y usan productos reales.
 
 ## Cómo trabajar con él
 - Habla y responde **en español**, corto y claro, sin tecnicismos.
-- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v64` → `v65`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
+- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v65` → `v66`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
 - Después de cada cambio: probar con Playwright (vista móvil 360×780 y escritorio 1530 px), hacer commit y **push a `main`**. Antes del push haz `git fetch` y une conservando el `datos.json` y el `README.md` del remoto (él guarda precios desde la app).
 - Suele pedir "vuelve a la versión anterior" cuando no le gusta un diseño: revierte con `git revert` y sube la versión.
 - Cuida mucho el diseño móvil:

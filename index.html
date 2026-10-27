@@ -1260,7 +1260,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v64';
+const APP_VERSION='v65';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1751,7 +1751,7 @@ $('m-set').onclick=()=>{
 };
 
 /* =========================================================
-   Asistente con IA: OpenRouter, Gemini y Groq (gratis)
+   Asistente con IA: OpenRouter y Gemini (gratis)
    Las llaves se guardan solo en este teléfono.
    ========================================================= */
 let aiHist=[], aiBusy=false, aiLast='';
@@ -1818,32 +1818,10 @@ const AI_PROV = {
       if(!text){ const e=new Error('http'); e.status=500; e.body=JSON.stringify({error:{message:'respuesta vacía'+((j.candidates||[])[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'')}}); throw e; }
       return {text, model};
     }
-  },
-  groq: {
-    name:'Groq', keyK:'tarifario-groq-key', modelK:'tarifario-groq-model',
-    help:'Llave gratuita de console.groq.com → API Keys. No usa tus datos para entrenar.',
-    hdr(){ return {'Authorization':'Bearer '+this.key(),'Content-Type':'application/json'}; },
-    async pick(force){
-      const s=ls.get(this.modelK); if(s && !force) return s;
-      const j=await aiHttp('https://api.groq.com/openai/v1/models',{headers:this.hdr()});
-      const ids=(j.data||[]).filter(m=>m.active!==false).map(m=>m.id).filter(id=>!/(whisper|guard|tts|playai|vision|embed|distil|compound|safeguard|orpheus|prompt)/i.test(id));
-      const score=id=>(/versatile/i.test(id)?50:0)+(/gpt-oss-120b/i.test(id)?60:0)+(/70b/i.test(id)?40:0)+(/llama/i.test(id)?5:0)+verOf(id,/(\d+(?:\.\d+)?)/)/10-(/8b|instant|mini|small/i.test(id)?30:0)-(/preview/i.test(id)?5:0);
-      ids.sort((x,y)=>score(y)-score(x));
-      if(!ids[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Groq'});
-      ls.set(this.modelK,ids[0]); return ids[0];
-    },
-    async send(sys,turns){
-      const model=await this.pick();
-      const j=await aiHttp('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:this.hdr(),
-        body:JSON.stringify({model,temperature:0.2,max_tokens:1200,messages:[{role:'system',content:sys},...turns.map(m=>({role:m.role==='user'?'user':'assistant',content:m.text}))]})});
-      if(j.error){ const e=new Error('http'); e.status=j.error.code||500; e.body=JSON.stringify(j); throw e; }
-      const text=((j.choices||[])[0]?.message?.content||'').trim();
-      if(!text){ const e=new Error('http'); e.status=500; e.body='{"error":{"message":"respuesta vacía"}}'; throw e; }
-      return {text, model};
-    }
   }
 };
-const AI_ORDER=['openrouter','gemini','groq'];
+const AI_ORDER=['openrouter','gemini'];
+try{ ['tarifario-groq-key','tarifario-groq-model','tarifario-ai-on-groq'].forEach(k=>localStorage.removeItem(k)); }catch(e){}
 try{ localStorage.removeItem('tarifario-claude-key'); localStorage.removeItem('tarifario-claude-model'); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
 const aiOnK=k=>'tarifario-ai-on-'+k;
