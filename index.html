@@ -392,6 +392,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
 .ai-prov{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
 .ai-prov small{font-size:12px;color:var(--muted);line-height:1.35}
 .ai-ph{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ai-use{display:flex;align-items:center;gap:8px;cursor:pointer}.ai-use input{width:18px;height:18px;margin:0;accent-color:var(--accent,#2b4a8b)}
 .ai-ok{font-size:11px;font-weight:700;color:var(--good);background:var(--good-bg);padding:2px 8px;border-radius:99px}
 .m-chat{position:fixed;inset:0;z-index:42;background:var(--bg);display:flex;flex-direction:column;max-width:560px;margin:0 auto}
 .mc-top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 10px max(8px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line)}
@@ -1258,7 +1259,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v61';
+const APP_VERSION='v62';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1708,8 +1709,8 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
-    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Usa los modelos gratuitos de OpenRouter. Si uno está saturado, pasa solo a otro.</small></span>
-      ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><strong>${pv.name}</strong>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Marca las IA que quieres usar en el chat. Si marcas las dos, se les pregunta a la vez y responde la primera que conteste; si una falla, responde la otra.</small></span>
+      ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><label class="ai-use"><input type="checkbox" data-aion="${k}"${aiOn(k)?' checked':''}><strong>${pv.name}</strong></label>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
         <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
     </div>
     <div class="row"><button class="btn primary" id="ms-ok">Listo</button></div>
@@ -1731,6 +1732,12 @@ $('m-set').onclick=()=>{
     const prev=pv.key(); ls.set(pv.keyK,v); ls.del(pv.modelK); toast(`Comprobando la llave de ${pv.name}…`);
     try{ const m=await pv.pick(true); toast(`Llave de ${pv.name} guardada · ${aiNice(m)}`); aiLast=''; closeModal(); }
     catch(e){ if(prev) ls.set(pv.keyK,prev); else ls.del(pv.keyK); toast(aiErrMsg(e,pv.name)); }
+  });
+  document.querySelectorAll('[data-aion]').forEach(c=>c.onchange=()=>{
+    const k=c.dataset.aion;
+    if(!c.checked && !AI_ORDER.some(x=>x!==k && aiOn(x))){ c.checked=true; toast('Deja al menos una IA marcada'); return; }
+    ls.set(aiOnK(k), c.checked?'1':'0'); aiLast='';
+    const pv=AI_PROV[k]; toast(c.checked ? (pv.key()?`${pv.name} activada en el chat`:`${pv.name} marcada · pega su llave para usarla`) : `${pv.name} desactivada en el chat`);
   });
   document.querySelectorAll('[data-aidel]').forEach(b=>b.onclick=()=>{ const pv=AI_PROV[b.dataset.aidel]; ls.del(pv.keyK); ls.del(pv.modelK); aiLast=''; closeModal(); toast(`Llave de ${pv.name} quitada`); });
   $('ms-ok').onclick=closeModal;
@@ -1777,14 +1784,43 @@ const AI_PROV = {
       if(j.error){ const e=new Error('http'); e.status=j.error.code||500; e.body=JSON.stringify(j); throw e; }
       return {text:((j.choices||[])[0]?.message?.content||'').trim(), model:j.model||list[0]};
     }
+  },
+  gemini: {
+    name:'Gemini', keyK:'tarifario-gemini-key', modelK:'tarifario-gemini-model',
+    help:'Llave gratuita de aistudio.google.com/apikey. En el plan gratis Google puede usar los datos para mejorar sus productos.',
+    async req(url,opt){
+      const k=this.key();
+      try{ return await aiHttp(url,Object.assign({},opt,{headers:{'x-goog-api-key':k,'Content-Type':'application/json'}})); }
+      catch(e){ if(e && !e.status && e.name!=='AbortError') return await aiHttp(url+(url.includes('?')?'&':'?')+'key='+encodeURIComponent(k),Object.assign({},opt,{headers:{'Content-Type':'application/json'}})); throw e; }
+    },
+    async pick(force){
+      const s=ls.get(this.modelK); if(s && !force) return s;
+      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200');
+      const all=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name);
+      const v=n=>verOf(n,/gemini-(\d+(?:\.\d+)?)/);
+      let ok=all.filter(n=>/flash/i.test(n) && !/(lite|image|tts|audio|live|thinking|exp|preview|embedding|8b)/i.test(n)).sort((a,b)=>v(b)-v(a)||a.length-b.length);
+      if(!ok.length) ok=all.filter(n=>/flash-lite/i.test(n)&&!/preview|exp/i.test(n)).sort((a,b)=>v(b)-v(a));
+      if(!ok[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Gemini'});
+      ls.set(this.modelK,ok[0]); return ok[0];
+    },
+    async send(sys,turns){
+      const model=await this.pick();
+      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/'+model+':generateContent',{method:'POST',
+        body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:turns.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.text}]})),generationConfig:{temperature:0.2,maxOutputTokens:1200}})});
+      const text=((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
+      if(!text){ const e=new Error('http'); e.status=500; e.body=JSON.stringify({error:{message:'respuesta vacía'+((j.candidates||[])[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'')}}); throw e; }
+      return {text, model};
+    }
   }
 };
-const AI_ORDER=['openrouter'];
-try{ localStorage.removeItem('tarifario-gemini-key'); localStorage.removeItem('tarifario-gemini-model'); }catch(e){}
+const AI_ORDER=['openrouter','gemini'];
 try{ localStorage.removeItem('tarifario-claude-key'); localStorage.removeItem('tarifario-claude-model'); }catch(e){}
 try{ localStorage.removeItem('tarifario-groq-key'); localStorage.removeItem('tarifario-groq-model'); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
-const aiReady=()=>AI_ORDER.filter(k=>AI_PROV[k].key());
+const aiOnK=k=>'tarifario-ai-on-'+k;
+const aiOn=k=>ls.get(aiOnK(k))!=='0';
+const aiReady=()=>AI_ORDER.filter(k=>AI_PROV[k].key() && aiOn(k));
+const aiAnyKey=()=>AI_ORDER.some(k=>AI_PROV[k].key());
 const aiKey=()=>aiReady().length>0;
 const aiNice=m=>String(m||'').split(',')[0].replace(/^models\//,'').replace(/^anthropic\//,'').replace(/:free$/,'');
 function aiErrMsg(e,prov){
@@ -1798,18 +1834,19 @@ function aiErrMsg(e,prov){
   if(e&&e.name==='AbortError') return `${n} tardó demasiado en responder.`;
   return `${n}: error de red (${(e&&(e.name+': '+e.message))||'desconocido'}).`;
 }
-/* pregunta a los proveedores en orden; si uno falla por límite, saturación o red, pasa al siguiente */
-async function aiSend(sys,turns){
-  const errs=[];
-  for(const k of aiReady()){
-    const pv=AI_PROV[k];
-    try{ const r=await pv.send(sys,turns); return Object.assign(r,{prov:pv.name}); }
-    catch(e){
-      if(e&&e.status===404) ls.del(pv.modelK);
-      errs.push(aiErrMsg(e,pv.name));
-    }
-  }
-  const e=new Error('todos'); e.list=errs; throw e;
+/* pregunta a todas las IA marcadas a la vez y usa la primera que responda bien; si una falla, responde la otra */
+function aiSend(sys,turns){
+  const ks=aiReady(), errs=[];
+  return new Promise((res,rej)=>{
+    let left=ks.length, done=false;
+    if(!left){ const e=new Error('todos'); e.list=['No hay ninguna IA marcada con llave guardada. Revisa Opciones.']; return rej(e); }
+    ks.forEach(k=>{
+      const pv=AI_PROV[k];
+      pv.send(sys,turns).then(r=>{ if(!done){ done=true; res(Object.assign(r,{prov:pv.name})); } })
+      .catch(e=>{ if(e&&e.status===404) ls.del(pv.modelK); errs.push(aiErrMsg(e,pv.name)); })
+      .finally(()=>{ if(--left===0 && !done){ const e=new Error('todos'); e.list=errs; rej(e); } });
+    });
+  });
 }
 /* resumen de los datos del tarifario que se envía como contexto */
 function aiContext(){
@@ -1912,7 +1949,7 @@ function aiRender(){
 }
 async function aiAsk(q){
   q=String(q||'').trim(); if(!q || aiBusy) return;
-  if(!aiKey()){ toast('Primero pega una llave de IA en Opciones'); $('m-set').click(); return; }
+  if(!aiKey()){ toast(aiAnyKey()?'La IA marcada no tiene llave. Marca otra o pega su llave en Opciones':'Primero pega una llave de IA en Opciones'); $('m-set').click(); return; }
   aiHist.push({role:'user',text:q}); aiBusy=true; aiRender();
   $('mc-in').value=''; aiGrow();
   try{
@@ -1929,10 +1966,10 @@ async function aiAsk(q){
 }
 function aiGrow(){ const i=$('mc-in'); i.style.height='auto'; i.style.height=Math.min(120,i.scrollHeight)+'px'; }
 function aiOpen(){
-  if(!aiKey()){ toast('Pega una llave de IA gratuita en Opciones para usar el asistente'); $('m-set').click(); return; }
+  if(!aiKey()){ toast(aiAnyKey()?'La IA marcada no tiene llave. Marca otra o pega su llave en Opciones':'Pega una llave de IA gratuita en Opciones para usar el asistente'); $('m-set').click(); return; }
   setVP(true);
   if(!aiHist.length) aiNewSugs();
-  $('m-chat').hidden=false; $('mc-model').textContent = aiLast || aiReady().map(k=>AI_PROV[k].name).join(' → '); aiRender();
+  $('m-chat').hidden=false; $('mc-model').textContent = aiLast || aiReady().map(k=>AI_PROV[k].name).join(' + '); aiRender();
   try{ history.pushState({chat:1},''); aiGuard=true; }catch(e){}
 }
 let aiGuard=false;
