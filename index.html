@@ -393,6 +393,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
 .ai-prov small{font-size:12px;color:var(--muted);line-height:1.35}
 .ai-ph{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .ai-use{display:flex;align-items:center;gap:8px;cursor:pointer}.ai-use input{width:18px;height:18px;margin:0;accent-color:var(--accent,#2b4a8b)}
+.ai-prov .ai-note{color:var(--ink);font-weight:600}.ai-prov .ai-note.bad{color:var(--bad,#b3261e)}
 .ai-ok{font-size:11px;font-weight:700;color:var(--good);background:var(--good-bg);padding:2px 8px;border-radius:99px}
 .m-chat{position:fixed;inset:0;z-index:42;background:var(--bg);display:flex;flex-direction:column;max-width:560px;margin:0 auto}
 .mc-top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 10px) max(12px,env(safe-area-inset-right,0px)) 10px max(8px,env(safe-area-inset-left,0px));background:var(--panel);border-bottom:1px solid var(--line)}
@@ -1259,7 +1260,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v63';
+const APP_VERSION='v64';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1711,7 +1712,7 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Marca las IA que quieres usar en el chat. Si marcas varias, se les pregunta a la vez y responde la primera que conteste; si una falla, responde otra.</small></span>
       ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><label class="ai-use"><input type="checkbox" data-aion="${k}"${aiOn(k)?' checked':''}><strong>${pv.name}</strong></label>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
-        <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
+        <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div><small class="ai-note" id="ms-n-${k}" hidden></small></div>`; }).join('')}
     </div>
     <div class="row"><button class="btn primary" id="ms-ok">Listo</button></div>
     ${verHTML()}`);
@@ -1727,11 +1728,17 @@ $('m-set').onclick=()=>{
   $('ms-forget').onclick=()=>{ ls.del(K_PASS); toast('La clave se pedirá la próxima vez'); };
   bindScale();
   document.querySelectorAll('[data-aisave]').forEach(b=>b.onclick=async ()=>{
-    const k=b.dataset.aisave, pv=AI_PROV[k], v=$('ms-k-'+k).value.trim();
+    const k=b.dataset.aisave, pv=AI_PROV[k], v=$('ms-k-'+k).value.replace(/\s+/g,'').replace(/^Bearer/i,'');
+    const note=$('ms-n-'+k); const say=(t,bad)=>{ note.hidden=false; note.textContent=t; note.className='ai-note'+(bad?' bad':''); };
     if(!v){ toast('Pega la llave primero'); return; }
-    const prev=pv.key(); ls.set(pv.keyK,v); ls.del(pv.modelK); toast(`Comprobando la llave de ${pv.name}…`);
+    const prev=pv.key(); ls.set(pv.keyK,v); ls.del(pv.modelK); say(`Comprobando la llave de ${pv.name}…`); b.disabled=true;
     try{ const m=await pv.pick(true); toast(`Llave de ${pv.name} guardada · ${aiNice(m)}`); aiLast=''; closeModal(); }
-    catch(e){ if(prev) ls.set(pv.keyK,prev); else ls.del(pv.keyK); toast(aiErrMsg(e,pv.name)); }
+    catch(e){
+      b.disabled=false;
+      const invalid = e && (e.status===401 || /API key not valid|API_KEY_INVALID|invalid_api_key|Invalid API Key/i.test(e.body||''));
+      if(invalid){ if(prev) ls.set(pv.keyK,prev); else ls.del(pv.keyK); say(`${pv.name} dice que la llave no es válida. Cópiala de nuevo completa.`,true); }
+      else { aiLast=''; say(`Llave guardada, pero no se pudo comprobar: ${aiErrMsg(e,pv.name)}`,true); }
+    }
   });
   document.querySelectorAll('[data-aion]').forEach(c=>c.onchange=()=>{
     const k=c.dataset.aion;
@@ -1851,7 +1858,8 @@ function aiErrMsg(e,prov){
   if(e&&e.message==='sin-modelo') return `${n}: tu llave no tiene un modelo disponible.`;
   if((s===400||s===403) && /location is not supported|region|country|territor|unsupported_country/i.test(e&&e.body||'')) return `${n} no está disponible desde tu país. Usa la llave de OpenRouter.`;
   if(s===429) return `${n}: llegaste al límite gratuito por ahora.`;
-  if(s===401||s===403||/API key not valid|API_KEY_INVALID/i.test(e&&e.body||'')) return `${n} rechazó la llave. Revísala en Opciones.`;
+  if(s===401||/API key not valid|API_KEY_INVALID|invalid_api_key/i.test(e&&e.body||'')) return `${n} rechazó la llave. Revísala en Opciones.`;
+  if(s===403) return `${n} bloqueó el acceso (403). Suele pasar cuando el servicio no está disponible en tu país o la red lo bloquea.`;
   if(s){ let msg=''; try{ const b=JSON.parse(e.body||'{}'); msg=(b.error&&(b.error.message||b.error))||b.message||''; }catch(x){ msg=String(e.body||'').slice(0,160); } return `${n} respondió ${s}${msg?': '+msg:''}`; }
   if(e&&e.name==='AbortError') return `${n} tardó demasiado en responder.`;
   return `${n}: error de red (${(e&&(e.name+': '+e.message))||'desconocido'}).`;

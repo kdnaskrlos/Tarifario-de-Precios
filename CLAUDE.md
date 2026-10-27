@@ -31,7 +31,7 @@ Léelo antes de tocar nada. Resume lo que el dueño (kdnaskrlos, Venezuela, hora
 
 ## Cómo trabajar con él
 - Habla y responde **en español**, corto y claro, sin tecnicismos.
-- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v63` → `v64`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
+- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v64` → `v65`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
 - Después de cada cambio: probar con Playwright (vista móvil 360×780 y escritorio 1530 px), hacer commit y **push a `main`**. Antes del push haz `git fetch` y une conservando el `datos.json` y el `README.md` del remoto (él guarda precios desde la app).
 - Suele pedir "vuelve a la versión anterior" cuando no le gusta un diseño: revierte con `git revert` y sube la versión.
 - Cuida mucho el diseño móvil:
