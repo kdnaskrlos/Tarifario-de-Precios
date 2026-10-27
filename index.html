@@ -1258,7 +1258,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v58';
+const APP_VERSION='v59';
 const APP_DATE='26 oct 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1708,7 +1708,7 @@ $('m-set').onclick=()=>{
     <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:8px"><span>Tamaño de la interfaz<small>Agranda o achica textos y botones en este teléfono.</small></span>${scaleHTML()}</div>
     <label class="m-sheet-row"><span>Modo oscuro<small>Cambia los colores de la app.</small></span><input type="checkbox" id="ms-dark"${theme==='oscuro'?' checked':''}></label>
     <div class="m-sheet-row"><span>Clave<small>Pedirla otra vez la próxima vez que abras la app.</small></span><button class="btn" id="ms-forget">Olvidar</button></div>
-    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Basta con una llave. Si tienes las dos, usa Claude primero y pasa a los modelos gratis de OpenRouter si falla.</small></span>
+    <div class="m-sheet-row" style="flex-direction:column;align-items:stretch;gap:10px"><span>Asistente con IA<small>Basta con una llave. Si tienes las dos, usa Gemini primero y pasa a OpenRouter si falla.</small></span>
       ${AI_ORDER.map(k=>{ const pv=AI_PROV[k], has=!!pv.key(); return `<div class="ai-prov"><div class="ai-ph"><strong>${pv.name}</strong>${has?'<span class="ai-ok">Llave guardada</span>':''}</div><small>${pv.help}</small>
         <div style="display:flex;gap:8px"><input type="password" id="ms-k-${k}" placeholder="${has?'•••••••• (pega otra para cambiarla)':'Pega la llave de '+pv.name}" autocomplete="off" style="flex:1;min-width:0"><button class="btn" type="button" data-aisave="${k}">Guardar</button>${has?`<button class="btn" type="button" data-aidel="${k}" aria-label="Quitar llave de ${pv.name}">Quitar</button>`:''}</div></div>`; }).join('')}
     </div>
@@ -1737,7 +1737,7 @@ $('m-set').onclick=()=>{
 };
 
 /* =========================================================
-   Asistente con IA: Claude (de pago) y OpenRouter (modelos gratis)
+   Asistente con IA: Gemini y OpenRouter (modelos gratis)
    Las llaves se guardan solo en este teléfono.
    ========================================================= */
 let aiHist=[], aiBusy=false, aiLast='';
@@ -1778,44 +1778,37 @@ const AI_PROV = {
       return {text:((j.choices||[])[0]?.message?.content||'').trim(), model:j.model||list[0]};
     }
   },
-  claude: {
-    name:'Claude', keyK:'tarifario-claude-key', modelK:'tarifario-claude-model',
-    help:'Llave de pago. Sirve una de console.anthropic.com (empieza con sk-ant-) o, si Anthropic no está disponible en tu país, una de OpenRouter con saldo (empieza con sk-or-), que da acceso a Claude. Usa Claude Sonnet.',
-    viaOR(){ return /^sk-or-/i.test(this.key()||''); },
-    hdr(){ return this.viaOR()
-      ? {'Authorization':'Bearer '+this.key(),'Content-Type':'application/json','HTTP-Referer':location.origin,'X-Title':'Tarifario de Precios'}
-      : {'x-api-key':this.key(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'}; },
+  gemini: {
+    name:'Gemini', keyK:'tarifario-gemini-key', modelK:'tarifario-gemini-model',
+    help:'Llave gratuita de aistudio.google.com/apikey. En el plan gratis Google puede usar los datos para mejorar sus productos.',
+    async req(url,opt){
+      const k=this.key();
+      try{ return await aiHttp(url,Object.assign({},opt,{headers:{'x-goog-api-key':k,'Content-Type':'application/json'}})); }
+      catch(e){ if(e && !e.status && e.name!=='AbortError') return await aiHttp(url+(url.includes('?')?'&':'?')+'key='+encodeURIComponent(k),Object.assign({},opt,{headers:{'Content-Type':'application/json'}})); throw e; }
+    },
     async pick(force){
       const s=ls.get(this.modelK); if(s && !force) return s;
-      const or=this.viaOR();
-      if(or) await aiHttp('https://openrouter.ai/api/v1/key',{headers:this.hdr()});   // comprueba la llave
-      const j=or ? await aiHttp('https://openrouter.ai/api/v1/models',{headers:{'Accept':'application/json'}})
-                 : await aiHttp('https://api.anthropic.com/v1/models?limit=100',{headers:this.hdr()});
-      const ids=(j.data||[]).map(m=>m.id).filter(id=>(or?/^anthropic\/claude/i:/^claude/i).test(id) && !/:free$|:beta$/i.test(id));
-      const ver=id=>{ const m=String(id).match(/(\d+)[.-](\d)(?!\d)/)||String(id).match(/-(\d+)(?:-|$)/); return m?parseFloat(m[1]+'.'+(m[2]||0)):0; };
-      const score=id=>(/sonnet/i.test(id)?1000:/haiku/i.test(id)?500:/opus/i.test(id)?300:0)+ver(id);
-      ids.sort((a,b)=>score(b)-score(a));
-      if(!ids[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Claude'});
-      ls.set(this.modelK,ids[0]); return ids[0];
+      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200');
+      const all=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name);
+      const v=n=>verOf(n,/gemini-(\d+(?:\.\d+)?)/);
+      let ok=all.filter(n=>/flash/i.test(n) && !/(lite|image|tts|audio|live|thinking|exp|preview|embedding|8b)/i.test(n)).sort((a,b)=>v(b)-v(a)||a.length-b.length);
+      if(!ok.length) ok=all.filter(n=>/flash-lite/i.test(n)&&!/preview|exp/i.test(n)).sort((a,b)=>v(b)-v(a));
+      if(!ok[0]) throw Object.assign(new Error('sin-modelo'),{prov:'Gemini'});
+      ls.set(this.modelK,ok[0]); return ok[0];
     },
     async send(sys,turns){
       const model=await this.pick();
-      if(this.viaOR()){
-        const j=await aiHttp('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:this.hdr(),
-          body:JSON.stringify({model,temperature:0.2,max_tokens:1200,messages:[{role:'system',content:sys},...turns.map(m=>({role:m.role==='user'?'user':'assistant',content:m.text}))]})});
-        if(j.error){ const e=new Error('http'); e.status=j.error.code||500; e.body=JSON.stringify(j); throw e; }
-        return {text:((j.choices||[])[0]?.message?.content||'').trim(), model:j.model||model};
-      }
-      const j=await aiHttp('https://api.anthropic.com/v1/messages',{method:'POST',headers:this.hdr(),
-        body:JSON.stringify({model,max_tokens:1200,temperature:0.2,system:sys,messages:turns.map(m=>({role:m.role==='user'?'user':'assistant',content:m.text}))})});
-      return {text:((j.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('')).trim(), model};
+      const j=await this.req('https://generativelanguage.googleapis.com/v1beta/'+model+':generateContent',{method:'POST',
+        body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:turns.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.text}]})),generationConfig:{temperature:0.2,maxOutputTokens:1200}})});
+      const text=((j.candidates||[])[0]?.content?.parts||[]).map(x=>x.text||'').join('').trim();
+      if(!text){ const e=new Error('http'); e.status=500; e.body=JSON.stringify({error:{message:'respuesta vacía'+((j.candidates||[])[0]?.finishReason?' ('+j.candidates[0].finishReason+')':'')}}); throw e; }
+      return {text, model};
     }
   }
 };
-const AI_ORDER=['claude','openrouter'];
+const AI_ORDER=['gemini','openrouter'];
+try{ localStorage.removeItem('tarifario-claude-key'); localStorage.removeItem('tarifario-claude-model'); }catch(e){}
 try{ localStorage.removeItem('tarifario-groq-key'); localStorage.removeItem('tarifario-groq-model'); }catch(e){}
-// Gemini se retiró: borra las llaves que hubieran quedado guardadas en este teléfono
-try{ ['tarifario-gemini-key','tarifario-gemini-model'].forEach(k=>localStorage.removeItem(k)); }catch(e){}
 Object.values(AI_PROV).forEach(pv=>{ pv.key=function(){ return ls.get(this.keyK); }; });
 const aiReady=()=>AI_ORDER.filter(k=>AI_PROV[k].key());
 const aiKey=()=>aiReady().length>0;
@@ -1824,10 +1817,9 @@ function aiErrMsg(e,prov){
   const s=e&&e.status, n=prov||'La IA';
   if(e&&e.stage==='datos') return 'Error al preparar los datos del tarifario: '+(e.detail||'');
   if(e&&e.message==='sin-modelo') return `${n}: tu llave no tiene un modelo disponible.`;
-  if(s===402 || /credit balance|insufficient|more credits/i.test(e&&e.body||'')) return `${n}: tu cuenta no tiene saldo. Recarga créditos para usarla.`;
-  if(s===403 && /region|country|territor|not available|unsupported_country/i.test(e&&e.body||'')) return `${n} no está disponible en tu país con esta llave. Prueba con una llave de OpenRouter con saldo.`;
-  if(s===429) return n==='Claude' ? `${n}: demasiadas preguntas seguidas, espera un momento.` : `${n}: llegaste al límite gratuito por ahora.`;
-  if(s===401||s===403) return `${n} rechazó la llave. Revísala en Opciones.`;
+  if((s===400||s===403) && /location is not supported|region|country|territor|unsupported_country/i.test(e&&e.body||'')) return `${n} no está disponible desde tu país. Usa la llave de OpenRouter.`;
+  if(s===429) return `${n}: llegaste al límite gratuito por ahora.`;
+  if(s===401||s===403||/API key not valid|API_KEY_INVALID/i.test(e&&e.body||'')) return `${n} rechazó la llave. Revísala en Opciones.`;
   if(s){ let msg=''; try{ const b=JSON.parse(e.body||'{}'); msg=(b.error&&(b.error.message||b.error))||b.message||''; }catch(x){ msg=String(e.body||'').slice(0,160); } return `${n} respondió ${s}${msg?': '+msg:''}`; }
   if(e&&e.name==='AbortError') return `${n} tardó demasiado en responder.`;
   return `${n}: error de red (${(e&&(e.name+': '+e.message))||'desconocido'}).`;
