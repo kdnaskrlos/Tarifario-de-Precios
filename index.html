@@ -256,6 +256,17 @@ td.z-warn .tm{color:var(--warn);font-weight:600} td.z-bad .tm{color:var(--bad);f
 .modal input[type=password],.modal input[type=text],.modal textarea{width:100%;font-size:15px;padding:9px 10px}
 .modal textarea{background:var(--bg);border:1px solid var(--line);border-radius:7px;min-height:110px;font-family:var(--f-mono);font-size:12px;color:var(--ink)}
 .modal ol{margin:0;padding-left:20px;color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:4px}
+.mg-pop h2{margin:0;font-size:18px;line-height:1.25}
+.mg-pop .mg-sub{margin:-6px 0 0;font-size:13px;color:var(--muted)}
+.mg-pop .mg-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:7px;background:var(--bg)}
+.mg-pop .mg-h{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mg-pop .mg-r{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14.5px;white-space:nowrap}
+.mg-pop .mg-r span{color:var(--muted)}
+.mg-pop .mg-r b{font-variant-numeric:tabular-nums}
+.mg-pop .mg-r.big{padding-top:7px;border-top:1px solid var(--line);font-size:16px}
+.mg-pop .mg-r.big span{color:var(--ink);font-weight:700}
+.mg-pop .mg-r.big b{font-size:17px;font-weight:800}
+.mg-pop .mg-note{font-size:12.5px;color:var(--muted);margin:0}
 .modal .err{color:var(--bad);font-weight:600;font-size:13px}
 .modal .spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:gira .8s linear infinite;align-self:center}
 @keyframes gira{to{transform:rotate(360deg)}}
@@ -310,7 +321,9 @@ body.movil .m-list{min-height:0}
 .m-card .c-head{grid-area:name;min-width:0}
 .m-card .c-name{font-weight:700;font-size:16px;line-height:1.2}
 .m-card .c-sub{font-size:13.5px;color:var(--muted);margin-top:2px}
-.m-card .m-step{grid-area:step;align-self:start}
+.m-card .c-act{grid-area:step;align-self:start;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.m-card .c-mg{border:0;background:none;color:var(--accent);font:700 12.5px var(--f-body);letter-spacing:.02em;padding:4px 0 0;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
+.m-card .c-mg:active{opacity:.6}
 .m-card .c-pu{grid-area:pu;display:flex;align-items:last baseline;gap:10px;min-width:0;flex-wrap:wrap;align-self:last baseline}
 .m-card .c-price{display:flex;flex-direction:column;line-height:1.1;font-variant-numeric:tabular-nums}
 .m-card .c-now{font-family:var(--f-body);font-weight:800;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
@@ -328,8 +341,8 @@ body.movil .m-list{container-type:inline-size;container-name:mlist}
 @container mlist (max-width:300px){
   .m-card{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"ico name name" "pu pu pu" "step step tot" "of of of"}
   .m-card > .m-ico{width:40px;height:40px}
-  .m-card .m-step{justify-self:start}
-  .m-card .c-tot{align-self:center}
+  .m-card .c-act{justify-self:start}
+  .m-card .c-tot{align-self:start;line-height:42px}
 }
 .m-card.hl{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .m-info{min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -1260,8 +1273,8 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v65';
-const APP_DATE='26 oct 2026';
+const APP_VERSION='v66';
+const APP_DATE='7 nov 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
@@ -1518,7 +1531,7 @@ function mCalc(){
 }
 function mCardHTML(r,c){
       const k=Q.indexOf(r.l), p=r.p;
-  const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}${isSep(p)&&mMix?' <span class="sep-chip">Por separado</span>':''}</div></div>${stepper(k,r.l.q)}`;
+  const head=`${iconOf(p)}<div class="c-head"><div class="c-name">${esc(p.prod)}</div><div class="c-sub">${esc(p.gen)} ${esc(p.prov)}${isSep(p)&&mMix?' <span class="sep-chip">Por separado</span>':''}</div></div><div class="c-act">${stepper(k,r.l.q)}${r.T?`<button type="button" class="c-mg" data-mg="${k}">Margen</button>`:''}</div>`;
   if(!r.T) return `<article class="m-card" data-k="${k}">${head}<div class="c-pu"><span class="m-chip detal">Sin costo o precio registrado</span></div></article>`;
   const disc=Math.round((1-r.pu/p.list)*100);
   const nx = r.ti<S.tiers.length-1 ? {min:S.tiers[r.ti+1].min, pr:r.T[r.ti+1].price} : null;
@@ -1679,7 +1692,31 @@ $('m-q').addEventListener('keydown', e=>{ if(e.key==='Enter'&&mHits[mOn]){ e.pre
 $('m-res').addEventListener('click', e=>{ const li=e.target.closest('li[data-i]'); if(!li) return; $('m-q').value=''; $('m-res').hidden=true; $('m-q').blur(); mAdd(+li.dataset.i); });
 document.addEventListener('pointerdown', e=>{ if(!e.target.closest('.m-search')) $('m-res').hidden=true; });
 // tarjetas
+/* ventana de margen de un producto: por unidad y por la cantidad elegida */
+function mMargin(k){
+  const c=mCalc(), r=c.rows.find(x=>x.l===Q[k]); if(!r || !r.T) return;
+  const p=r.p, q=r.l.q, pu=r.pu, cu=varCost(p), gu=pu-cu, m=pu?gu/pu:0, z=zone(m,p);
+  const col=`style="color:var(--${z})"`;
+  const tl=tierLabel(r.ti), det=r.ti===0;
+  const gd=p.list-cu, md=p.list?gd/p.list:0;
+  modal(`<div class="mg-pop" style="display:flex;flex-direction:column;gap:12px">
+    <h2>${esc(p.prod)}</h2><p class="mg-sub">${esc(p.gen)} ${esc(p.prov)} · ${det?'precio detal':'tramo '+tl+' unid.'}</p>
+    <div class="mg-box"><div class="mg-h">Por unidad</div>
+      <div class="mg-r"><span>Precio</span><b>${fmt(pu)}</b></div>
+      <div class="mg-r"><span>Costo</span><b>${fmt(cu)}</b></div>
+      <div class="mg-r big"><span>Ganancia</span><b ${col}>${pct(m)} / ${fmt(gu)}</b></div>
+    </div>
+    <div class="mg-box"><div class="mg-h">Por ${q} unidad${q===1?'':'es'}</div>
+      <div class="mg-r"><span>Venta</span><b>${fmt(pu*q)}</b></div>
+      <div class="mg-r"><span>Costo</span><b>${fmt(cu*q)}</b></div>
+      <div class="mg-r big"><span>Ganancia</span><b ${col}>${pct(m)} / ${fmt(gu*q)}</b></div>
+    </div>
+    ${!det?`<p class="mg-note">Al detal (${fmt(p.list)}) ganarías ${pct(md)} / ${fmt(gd)} por unidad.</p>`:''}
+    <div class="row"><button class="btn primary" id="mg-ok">Listo</button></div></div>`);
+  $('mg-ok').onclick=closeModal;
+}
 $('m-list').addEventListener('click', e=>{
+  const g=e.target.closest('button[data-mg]'); if(g){ mMargin(+g.dataset.mg); return; }
   const b=e.target.closest('button[data-d]'); if(!b) return;
   const k=+b.dataset.k, d=+b.dataset.d; if(!Q[k]) return;
   if(d<0 && Q[k].q<=1) return mRemove(k);
