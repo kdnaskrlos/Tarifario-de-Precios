@@ -23,6 +23,10 @@ Léelo antes de tocar nada. Resume lo que el dueño (kdnaskrlos, Venezuela, hora
   - `p.sep`: el producto cuenta por separado y no suma al mix del pedido.
 - En el móvil, el mix suma las prendas para elegir el tramo, excepto las de productos por separado.
 
+## Nombres y compatibilidad
+- En pantalla se dice **Tipo** (tipo de prenda) y **Marca**, no "Producto" ni "Proveedor". Los campos internos de `datos.json` siguen siendo `prod`, `gen`, `prov`, etc.: **no cambiarlos**, porque la "Carga Masiva" de COMIC SHOP (https://kdnaskrlos.github.io/App-Inventario/) descifra y lee `datos.json` con la misma clave. Si algo obliga a tocarlos, avisar antes y decir qué campo cambia.
+- El Tarifario no lee `data/inventario.json` de App-Inventario.
+
 ## Asistente con IA (móvil)
 - Proveedores: OpenRouter (modelos `:free`, con cambio automático entre 3) y Gemini.
 - En Opciones hay una casilla por IA. Si hay varias marcadas, se les pregunta a la vez y gana la primera respuesta válida; si una falla, responde otra. Al menos una debe quedar marcada.
@@ -31,7 +35,7 @@ Léelo antes de tocar nada. Resume lo que el dueño (kdnaskrlos, Venezuela, hora
 
 ## Cómo trabajar con él
 - Habla y responde **en español**, corto y claro, sin tecnicismos.
-- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v67` → `v68`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
+- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v68` → `v69`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
 - Después de cada cambio: probar con Playwright (vista móvil 360×780 y escritorio 1530 px), hacer commit y **push a `main`**. Antes del push haz `git fetch` y une conservando el `datos.json` y el `README.md` del remoto (él guarda precios desde la app).
 - Suele pedir "vuelve a la versión anterior" cuando no le gusta un diseño: revierte con `git revert` y sube la versión.
 - Cuida mucho el diseño móvil:

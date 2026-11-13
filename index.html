@@ -495,7 +495,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
     <section class="panel" aria-label="Tabla de precios">
       <div class="filters">
         <input type="search" id="f-q" placeholder="Buscar producto">
-        <select id="f-prov" aria-label="Proveedor"></select>
+        <select id="f-prov" aria-label="Marca"></select>
         <select id="f-state" aria-label="Estado">
           <option value="">Todos los estados</option><option value="good">Saludable</option><option value="warn">Bajo saludable</option><option value="bad">Bajo mínimo</option><option value="none">Faltan datos</option><option value="go">Gasto operativo propio</option><option value="fl">Margen mínimo propio</option><option value="tp">Precio manual</option><option value="sep">Cuenta por separado</option>
         </select>
@@ -519,7 +519,7 @@ body.movil .toast{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 132px);max
         <button class="btn ur-btn icon-only" id="bk-redo" type="button" disabled title="Rehacer (Ctrl+Y)" aria-label="Rehacer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg></button>
         <select id="bk-act" aria-label="Editar en lote">
           <option value="">Editar en lote…</option>
-          <option value="prov">Cambiar proveedor</option>
+          <option value="prov">Cambiar marca</option>
           <option value="gen">Cambiar género</option>
           <option value="cb">Fijar costo base</option>
           <option value="list">Fijar precio detal</option>
@@ -722,7 +722,7 @@ function renderWarnCards(){
 function renderFilters(){
   const provs=[...new Set(P.map(p=>p.prov).filter(Boolean))];
   const cur=$('f-prov').value;
-  $('f-prov').innerHTML='<option value="">Todos los proveedores</option>'+provs.map(v=>`<option${v===cur?' selected':''}>${esc(v)}</option>`).join('');
+  $('f-prov').innerHTML='<option value="">Todas las marcas</option>'+provs.map(v=>`<option${v===cur?' selected':''}>${esc(v)}</option>`).join('');
 }
 function visibleRows(){
   const q=$('f-q').value.trim().toLowerCase(), pv=$('f-prov').value, st=$('f-state').value;
@@ -745,7 +745,7 @@ function numIn(p,f,step){ return `<input class="cell-in num" type="number" id="c
 function renderTable(){
   const rows = visibleRows();
   const allChk = rows.length>0 && rows.every(({p})=>chk.has(p.id)), someChk = rows.some(({p})=>chk.has(p.id));
-  $('thead').innerHTML = `<tr><th class="chk"><input type="checkbox" id="chk-all" aria-label="Seleccionar todos los visibles"${allChk?' checked':''}></th><th class="prod">Producto · género · proveedor</th><th>Costo base</th><th title="Vacío = usa el gasto general">Gasto op.</th><th>Costo total</th><th>Precio detal</th><th>Estado</th>${S.tiers.map((t,i)=>`<th>${tierLabel(i)} u.</th>`).join('')}</tr>`;
+  $('thead').innerHTML = `<tr><th class="chk"><input type="checkbox" id="chk-all" aria-label="Seleccionar todos los visibles"${allChk?' checked':''}></th><th class="prod">Tipo · género · marca</th><th>Costo base</th><th title="Vacío = usa el gasto general">Gasto op.</th><th>Costo total</th><th>Precio detal</th><th>Estado</th>${S.tiers.map((t,i)=>`<th>${tierLabel(i)} u.</th>`).join('')}</tr>`;
   $('chk-all').indeterminate = someChk && !allChk;
   $('tbody').innerHTML = rows.map(({p,i})=>{
     const s=status(p), T=tiers(p), c=unitCost(p), on=chk.has(p.id);
@@ -756,8 +756,8 @@ function renderTable(){
       : `<td colspan="${S.tiers.length}" style="text-align:center;color:var(--muted)">Registra costo y precio para calcular tramos</td>`;
     return `<tr data-i="${i}" data-id="${p.id}" class="${i===sel?'sel':''}${on?' checked':''}">
       <td class="chk"><input type="checkbox" class="rowchk" data-id="${p.id}" aria-label="Seleccionar ${esc(p.prod)}"${on?' checked':''}></td>
-      <td><input class="cell-in pname-in" type="text" id="c-${p.id}-prod" data-id="${p.id}" data-f="prod" value="${esc(p.prod)}" placeholder="Nombre del producto" aria-label="Producto">
-        <div class="psub-row"><input class="cell-in" type="text" id="c-${p.id}-gen" data-id="${p.id}" data-f="gen" value="${esc(p.gen)}" placeholder="Género" aria-label="Género"><input class="cell-in" type="text" id="c-${p.id}-prov" data-id="${p.id}" data-f="prov" value="${esc(p.prov)}" placeholder="Proveedor" aria-label="Proveedor"></div></td>
+      <td><input class="cell-in pname-in" type="text" id="c-${p.id}-prod" data-id="${p.id}" data-f="prod" value="${esc(p.prod)}" placeholder="Tipo de prenda" aria-label="Tipo de prenda">
+        <div class="psub-row"><input class="cell-in" type="text" id="c-${p.id}-gen" data-id="${p.id}" data-f="gen" value="${esc(p.gen)}" placeholder="Género" aria-label="Género"><input class="cell-in" type="text" id="c-${p.id}-prov" data-id="${p.id}" data-f="prov" value="${esc(p.prov)}" placeholder="Marca" aria-label="Marca"></div></td>
       <td>${numIn(p,'cb',100)}</td><td>${goIn(p)}</td><td class="n">${p.cb?fmt(c):'—'}</td><td>${numIn(p,'list',500)}</td>
       <td><span class="pill ${s.k}">${s.t}</span>${isSep(p)?'<div><span class="sep-chip" title="En el cotizador, su tramo se calcula solo con su propia cantidad">Por separado</span></div>':''}</td>${cells}</tr>`;
   }).join('') || `<tr><td colspan="${7+S.tiers.length}" style="text-align:center;color:var(--muted);padding:24px">${P.length?'Ningún producto coincide con el filtro.':'<div class="empty-start"><h3>Tu tarifario está vacío</h3><p>Importa tu hoja de precios en CSV o la tabla copiada desde la versión anterior, o crea los productos uno por uno. Al terminar, toca “Guardar en GitHub”.</p><div class="toolbar" style="justify-content:center"><button class="btn primary" data-act="import">Importar CSV</button><button class="btn" data-act="add">+ Agregar producto</button></div></div>'}</td></tr>`;
@@ -854,7 +854,7 @@ $('b-add').onclick=()=>{
   mutate(()=>{ const np={id:uid(),prov:prov||'',gen:'',prod:'Nuevo producto',cb:0,list:0,old:[0,0,0,0,0]}; nid=np.id; P.unshift(np); });
   sel=0; refresh();
   const el=$('c-'+nid+'-prod'); if(el){ el.focus(); el.select(); }
-  toast('Producto agregado: completa nombre, costo y precio');
+  toast('Producto agregado: completa tipo, costo y precio');
 };
 function doUndo(){
   if(!undoStack.length){ toast('No hay nada que deshacer'); return; }
@@ -907,7 +907,7 @@ $('bk-del').onclick=()=>{
 };
 function bkCfg(a){ return a && a.startsWith('tp:') ? {type:'number',ph:'Precio en COP'} : BK[a]; }
 const BK = {
-  prov:{type:'text',ph:'Nuevo proveedor'}, gen:{type:'text',ph:'Nuevo género'},
+  prov:{type:'text',ph:'Nueva marca'}, gen:{type:'text',ph:'Nuevo género'},
   cb:{type:'number',ph:'Costo en COP'}, list:{type:'number',ph:'Precio en COP'},
   listPct:{type:'number',ph:'Ej: 5 o -5'}, cbPct:{type:'number',ph:'Ej: 8 o -3'}, gop:{type:'number',ph:'Gasto en COP'}, flp:{type:'number',ph:'Margen en %'}, toObj:null, goGen:null, flGen:null, tpGen:null, tpPct:{type:'number',ph:'Ej: -5 o 3'}
 };
@@ -1168,7 +1168,7 @@ function copy(txt,msg){
   function fallback(){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); done();}catch(e){ toast('Selecciona y copia el texto manualmente'); } ta.remove(); }
 }
 $('b-copy').onclick=()=>{
-  const head=['Proveedor','Género','Producto','Costo Base','Gasto Operativo','Costo Total','Precio Detal','Margen Detal','Estado','Margen Mínimo',...S.tiers.flatMap((t,i)=>[`Precio ${tierLabel(i)}`,`Margen ${tierLabel(i)}`])];
+  const head=['Marca','Género','Tipo','Costo Base','Gasto Operativo','Costo Total','Precio Detal','Margen Detal','Estado','Margen Mínimo',...S.tiers.flatMap((t,i)=>[`Precio ${tierLabel(i)}`,`Margen ${tierLabel(i)}`])];
   const lines=[head.join(',')].concat((csvOnly||P).map(p=>{
     const T=tiers(p), q=v=>`"${String(v).replace(/"/g,'""')}"`;
     return [q(p.prov),q(p.gen),q(p.prod),p.cb,goOf(p),varCost(p),p.list,p.cb?((p.list-varCost(p))/p.list*100).toFixed(1):'',q(status(p).t),floorOf(p),
@@ -1196,11 +1196,11 @@ function parseCSV(t){
   return rows;
 }
 function importRows(rows){
-  const hi=rows.findIndex(r=>r.some(c=>/^\s*producto\s*$/i.test(c)));
+  const hi=rows.findIndex(r=>r.some(c=>/^\s*(producto|tipo( de prenda)?)\s*$/i.test(c)));
   if(hi<0) return [];
   const H=rows[hi].map(c=>norm(c).replace(/\s+/g,' ').trim());
   const col=re=>H.findIndex(h=>re.test(h));
-  const cP=col(/^proveedor/), cG=col(/^genero/), cN=col(/^producto$/), cC=col(/^costo base/), cO=col(/^gasto operativo/), cF=col(/^margen minimo/);
+  const cP=col(/^(proveedor|marca)/), cG=col(/^genero/), cN=col(/^(producto|tipo( de prenda)?)$/), cC=col(/^costo base/), cO=col(/^gasto operativo/), cF=col(/^margen minimo/);
   let cL=col(/precio venta unidad|precio detal|precio lista/); if(cL<0) cL=7;
   const oldIdx = /1 a 5/.test(H[13]||'') ? [13,15,17,19,21] : null;
   const n=s=>parseInt(String(s||'').replace(/[^\d]/g,''))||0;
@@ -1216,7 +1216,7 @@ function importRows(rows){
 }
 function applyImport(text){
   const out=importRows(parseCSV(text));
-  if(!out.length){ toast('No encontré productos. La tabla debe tener columnas Producto, Costo Base y Precio.'); return false; }
+  if(!out.length){ toast('No encontré productos. La tabla debe tener columnas Tipo, Costo Base y Precio.'); return false; }
   snapshot(); remap(()=>{ P=out; }); chk.clear(); sel=0; refresh(); toast(`${out.length} productos importados. Revisa y toca “Guardar en GitHub”.`);
   return true;
 }
@@ -1273,8 +1273,8 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v67';
-const APP_DATE='7 nov 2026';
+const APP_VERSION='v68';
+const APP_DATE='13 nov 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
 const K_TOKEN='tarifario-gh-token', K_PASS='tarifario-clave', K_CACHE='tarifario-cache';
@@ -1902,7 +1902,7 @@ function aiContext(){
   L.push(`Regla del cotizador: "Sumar prendas para el tramo" está ${mMix?'ENCENDIDA (las prendas de distintos productos se suman para elegir el tramo, excepto los productos marcados "por separado", que usan solo su propia cantidad)':'APAGADA (cada producto usa solo su propia cantidad)'}.`);
   L.push('Margen = (precio − costo) ÷ precio. Costo por prenda = costo base + gasto operativo. Un tramo nunca baja del margen mínimo del producto salvo que tenga precio manual.');
   L.push('');
-  L.push('PRODUCTOS (nombre | género | proveedor | costo base | gasto op. | costo total | margen mín. | marcas | precios por tramo como "tramo: precio (ganancia por prenda, margen)"):');
+  L.push('PRODUCTOS (tipo de prenda | género | marca | costo base | gasto op. | costo total | margen mín. | marcas | precios por tramo como "tramo: precio (ganancia por prenda, margen)"):');
   P.forEach(p=>{
     const T=tiers(p), marks=[];
     if(hasGo(p)&&+p.gop!==(S.go||0)) marks.push('gasto propio');
