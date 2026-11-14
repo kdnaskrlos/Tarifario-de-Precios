@@ -1273,7 +1273,7 @@ applyTheme();
 /* =========================================================
    Datos en GitHub (cifrados con tu clave)
    ========================================================= */
-const APP_VERSION='v68';
+const APP_VERSION='v69';
 const APP_DATE='13 nov 2026';
 const verHTML=()=>`<p class="app-ver">Versión ${APP_VERSION.slice(1)} · ${APP_DATE}</p>`;
 const GH = {owner:'kdnaskrlos', repo:'Tarifario-de-Precios', branch:'main', path:'datos.json'};
@@ -1332,11 +1332,12 @@ function updateSync(){
   let cls='sync desk-only', txt;
   if(saving){ cls+=' busy'; txt='Guardando…'; }
   else if(syncErr){ cls+=' err'; txt=syncErr; }
-  else if(d){ cls+=' dirty'; txt='Cambios sin guardar'; }
+  else if(d){ cls+=' dirty'; txt = (!MOVIL && ls.get(K_TOKEN)) ? 'Guardando en unos segundos…' : 'Cambios sin guardar'; }
   else txt = lastUpdated ? 'Guardado · '+new Date(lastUpdated).toLocaleString('es-CO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Sin datos guardados';
   el.className=cls; el.textContent=txt;
   $('b-save').disabled = saving || !d;
   if(m){ m.className=''; m.textContent = syncErr || (lastSync ? 'Precios al día · '+ago(lastSync) : 'Cargando…'); }
+  autoKick();
 }
 setInterval(updateSync, 30000);
 
@@ -1418,7 +1419,8 @@ async function pull(force){
     syncErr='Sin conexión'; updateSync();
   }
 }
-async function saveRemote(){
+async function saveRemote(auto){
+  if(auto!==true) auto=false;
   if(saving || !PASS) return;
   if(!ls.get(K_TOKEN)){ openSettings('Para guardar en GitHub primero conecta tu cuenta.'); return; }
   saving=true; syncErr=''; updateSync();
@@ -1427,7 +1429,7 @@ async function saveRemote(){
     const env=await encryptData({S,P,actualizado:now},PASS);
     remoteSha=await ghPut(env); cacheEnv(env,remoteSha);
     savedStr=snap; forceDirty=false; lastUpdated=now; lastSync=Date.now();
-    toast('Guardado en GitHub. El teléfono verá los cambios en unos segundos.');
+    if(!auto) toast('Guardado en GitHub. El teléfono verá los cambios en unos segundos.');
   }catch(e){
     const s=e.status;
     syncErr = s===401||s===403 ? 'Token sin permiso' : s===409||s===422 ? 'Conflicto al guardar' : 'No se pudo guardar';
@@ -1436,6 +1438,21 @@ async function saveRemote(){
       : 'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.');
   }
   saving=false; updateSync();
+}
+/* guardado automático: unos segundos después del último cambio (solo en el computador, con token) */
+let autoT=0, autoState='';
+const AUTO_MS=4000;
+function autoKick(){
+  if(MOVIL || !PASS || !ls.get(K_TOKEN)) return;
+  if(!isDirty()){ clearTimeout(autoT); autoT=0; autoState=''; return; }
+  const st=stateStr(); if(st===autoState) return;          // sin cambios nuevos desde la última vez
+  autoState=st; clearTimeout(autoT);
+  autoT=setTimeout(autoRun, AUTO_MS);
+}
+function autoRun(){
+  autoT=0;
+  if(saving){ autoT=setTimeout(autoRun,1500); return; }
+  if(isDirty()) saveRemote(true).then(()=>{ if(isDirty() && !syncErr){ autoState=''; autoKick(); } });
 }
 function openSettings(msg){
   const has=!!ls.get(K_TOKEN);

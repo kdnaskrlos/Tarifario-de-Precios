@@ -23,6 +23,9 @@ Léelo antes de tocar nada. Resume lo que el dueño (kdnaskrlos, Venezuela, hora
   - `p.sep`: el producto cuenta por separado y no suma al mix del pedido.
 - En el móvil, el mix suma las prendas para elegir el tramo, excepto las de productos por separado.
 
+## Guardado
+- En el computador (con token) los precios se guardan solos en GitHub 4 s después del último cambio (`autoKick`/`autoRun`); el botón "Guardar en GitHub" y Ctrl+S siguen funcionando. Pidió esto el 13 nov 2026.
+
 ## Nombres y compatibilidad
 - En pantalla se dice **Tipo** (tipo de prenda) y **Marca**, no "Producto" ni "Proveedor". Los campos internos de `datos.json` siguen siendo `prod`, `gen`, `prov`, etc.: **no cambiarlos**, porque la "Carga Masiva" de COMIC SHOP (https://kdnaskrlos.github.io/App-Inventario/) descifra y lee `datos.json` con la misma clave. Si algo obliga a tocarlos, avisar antes y decir qué campo cambia.
 - El Tarifario no lee `data/inventario.json` de App-Inventario.
@@ -35,7 +38,7 @@ Léelo antes de tocar nada. Resume lo que el dueño (kdnaskrlos, Venezuela, hora
 
 ## Cómo trabajar con él
 - Habla y responde **en español**, corto y claro, sin tecnicismos.
-- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v68` → `v69`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
+- **Cada cambio sube la versión:** `APP_VERSION` y `APP_DATE` en `index.html`, y `CACHE` en `sw.js` (por ejemplo `v69` → `v70`). La versión se ve en letras pequeñas al final de Opciones (móvil) y de la conexión con GitHub (escritorio).
 - Después de cada cambio: probar con Playwright (vista móvil 360×780 y escritorio 1530 px), hacer commit y **push a `main`**. Antes del push haz `git fetch` y une conservando el `datos.json` y el `README.md` del remoto (él guarda precios desde la app).
 - Suele pedir "vuelve a la versión anterior" cuando no le gusta un diseño: revierte con `git revert` y sube la versión.
 - Cuida mucho el diseño móvil:
